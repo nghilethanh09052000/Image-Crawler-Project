@@ -7,7 +7,7 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 class IndexSpider(scrapy.Spider):
 
-    name                = 'index'
+    name                = 'flickr'
     tag                 = 'landscape'
     init_url            = 'https://www.flickr.com'
     photo_url           = 'https://www.flickr.com/photos' # photo_id and owner_id
