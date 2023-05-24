@@ -1,12 +1,20 @@
 from configparser import ConfigParser
+import os
 
 config = ConfigParser(interpolation = None)
+
+
 config.read('crawler.cfg')
 
-
 #[FLICKR]
-flickr_url = config['FLICK']['flickr_url']
-flickr_api = config['FLICK']['flickr_api']
+flickr_url = config['FLICKR']['flickr_url']
+flickr_api = config['FLICKR']['flickr_api']
+
+#[PEXELS]
+pexels_url           = config['PEXELS']['pexels_url']
+pexels_cookie_string = config['PEXELS']['pexels_cookie_string']
+
+print('Nghi', flickr_url)
 
 
 #[DATABASE]
@@ -118,5 +126,3 @@ ITEM_PIPELINES = {
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 FEED_EXPORT_ENCODING = "utf-8"
-
-

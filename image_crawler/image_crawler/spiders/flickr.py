@@ -15,16 +15,16 @@ class IndexSpider(scrapy.Spider):
     count               = 0
     tag                 = None
     flickr_api_key      = ''
-    
-        
         
 
     def start_requests(self):
+        i                   = 0
         tag                 = self.tag
         self.flickr_api_key = utils.parse_api_key(tag, flickr_url, self.name)
         
         # Setup loop for pages
-        for i in range(1, 10001):
+        while True:
+            i+=1
             url = flickr_api.format(i ,tag, self.flickr_api_key)
             yield scrapy.Request(
                 url = url,
@@ -32,8 +32,7 @@ class IndexSpider(scrapy.Spider):
             )
 
     def get_all_photos(self, response, **kwargs):
-        
-        
+            
         data   = json.loads(response.body)
         photos = data['photos']['photo']
 

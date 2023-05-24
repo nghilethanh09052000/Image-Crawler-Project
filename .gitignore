@@ -1,3 +1,4 @@
 .env
 .conda
-.full
+/image_crawler/download/*
+
