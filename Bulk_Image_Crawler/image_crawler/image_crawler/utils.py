@@ -1,16 +1,11 @@
 from http.cookies import SimpleCookie
-from dotenv import load_dotenv
 import os
 from datetime import datetime
+import requests
 
-load_dotenv()
+
 class UtilsProcess:
 
-    MONGO_DB_URL         = os.getenv('MONGO_DB_URL')
-    MONGO_DB_DATABASE    = os.getenv('MONGO_DB_DATABASE')
-    COOKIE_STRING        = os.getenv("COOKIE_STRING")
-    FLICKR_LANDSCAPE_API = os.getenv("FLICKR_LANDSCAPE_API")
-    FLICKR_WATERFALL_API = os.getenv("FLICKR_WATERFALL_API")
     
     IMAGE_SIZE = {
         'url_sq' : ['height_sq', 'width_sq'],
@@ -34,6 +29,14 @@ class UtilsProcess:
         'FocalLength': 'focallength',
     }
         
+    # Parse API Key of the Website
+
+    def parse_api_key(self, tag , url, name):
+        if name == 'flickr':
+            searched_tag_url = url.format(tag)
+            response         = requests.get(searched_tag_url).text
+            return str(str(str(response).split('root.YUI_config.flickr.api.site_key = "')[1]).split('";')[0])
+
     # Parse Cookie For Request
     def cookie_parser(self):
         cookie_string = self.COOKIE_STRING

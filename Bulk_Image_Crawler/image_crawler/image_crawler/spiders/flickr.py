@@ -1,30 +1,39 @@
 import scrapy
+import argparse
 import json
 from ..utils import utils
+from ..settings import flickr_url, flickr_api
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
-
+import requests
 
 
 class IndexSpider(scrapy.Spider):
 
     name                = 'flickr'
-    tag                 = 'landscape'
     init_url            = 'https://www.flickr.com'
     photo_url           = 'https://www.flickr.com/photos' # photo_id and owner_id
     count               = 0
+    tag                 = None
+    flickr_api_key      = ''
     
+        
+        
+
     def start_requests(self):
-
-        # Todo: setup loop for pages
-
-        yield scrapy.Request(
-            url = utils.FLICKR_LANDSCAPE_API,
-            callback = self.get_all_photos,
-            cookies = utils.cookie_parser()
-        )
+        tag                 = self.tag
+        self.flickr_api_key = utils.parse_api_key(tag, flickr_url, self.name)
+        
+        # Setup loop for pages
+        for i in range(1, 10001):
+            url = flickr_api.format(i ,tag, self.flickr_api_key)
+            yield scrapy.Request(
+                url = url,
+                callback = self.get_all_photos
+            )
 
     def get_all_photos(self, response, **kwargs):
-      
+        
+        
         data   = json.loads(response.body)
         photos = data['photos']['photo']
 
@@ -33,7 +42,7 @@ class IndexSpider(scrapy.Spider):
             size      = []
             owner_id  = photo['owner']
             photo_id  = photo['id']
-            image     = f"{owner_id}_{photo_id}"         # Get this one
+            image     = f"flickr_{photo_id}_{owner_id}" # Get this one       
             page = f'{self.photo_url}/{owner_id}/{photo_id}'
 
             for i in list(utils.IMAGE_SIZE.keys()):
@@ -57,9 +66,9 @@ class IndexSpider(scrapy.Spider):
             }
             
             yield scrapy.Request(
-                url = f'https://api.flickr.com/services/rest?photo_id={photo_id}&extras=camera&viewerNSID=197744874%40N06&method=flickr.photos.getExif&csrf=1684682207%3Ay1fg88gisg%3Afdf5269875586aec73788ac323702395&api_key=eac0286d53e28304518ace9179eb9020&format=json&hermes=1&hermesClient=1&reqId=4d5637b6-5aee-434e-916f-ceaa7ebfae15&nojsoncallback=1',
+                url = f'https://api.flickr.com/services/rest?photo_id={photo_id}&extras=camera&viewerNSID=&method=flickr.photos.getExif&csrf=1684682207%3Ay1fg88gisg%3Afdf5269875586aec73788ac323702395&api_key={self.flickr_api_key}&format=json&hermes=1&hermesClient=1&reqId=4d5637b6-5aee-434e-916f-ceaa7ebfae15&nojsoncallback=1',
                 callback = self.get_exif,
-                cookies = utils.cookie_parser(),
+                # cookies = utils.cookie_parser(),
                 meta = {
                     'item'    : item,
                     'photo_id': photo_id,
@@ -95,7 +104,7 @@ class IndexSpider(scrapy.Spider):
         }
 
         yield scrapy.Request(
-            url = f'https://api.flickr.com/services/rest?photo_id={photo_id}&extras=autotags&lang=en-US&viewerNSID=197744874%40N06&method=flickr.tags.getListPhoto&csrf=1684685119%3Asx5rww6hv6%3A3d4a6b57dc724612e22da47b287785d8&api_key=eac0286d53e28304518ace9179eb9020&format=json&hermes=1&hermesClient=1&reqId=3ce05c20-2aa1-4281-8052-79635440e80b&nojsoncallback=1',
+            url = f'https://api.flickr.com/services/rest?photo_id={photo_id}&extras=autotags&lang=en-US&viewerNSID=&method=flickr.tags.getListPhoto&csrf=1684685119%3Asx5rww6hv6%3A3d4a6b57dc724612e22da47b287785d8&api_key={self.flickr_api_key}&format=json&hermes=1&hermesClient=1&reqId=3ce05c20-2aa1-4281-8052-79635440e80b&nojsoncallback=1',
             callback = self.get_tags,
             meta = {
                 'item': item
@@ -117,7 +126,6 @@ class IndexSpider(scrapy.Spider):
         yield scrapy.Request(
             url = page,
             callback = self.get_remain_data,
-            cookies = utils.cookie_parser(),
             meta = {
                 'item': item
             }

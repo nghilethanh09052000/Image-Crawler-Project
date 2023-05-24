@@ -2,7 +2,37 @@ from configparser import ConfigParser
 
 config = ConfigParser(interpolation = None)
 config.read('crawler.cfg')
-print(config)
+
+
+#[FLICKR]
+flickr_url = config['FLICK']['flickr_url']
+flickr_api = config['FLICK']['flickr_api']
+
+
+#[DATABASE]
+MONGO_DB_URL      = config['DATABASE']['MONGO_DB_URL']
+MONGO_DB_DATABASE = config['DATABASE']['MONGO_DB_DATABASE']
+COLLECTION_NAME   = config['DATABASE']['COLLECTION_NAME']
+
+
+#[IMAGE]
+limit               = int(config['IMAGE']['limit'])
+IMAGES_STORE        = '.'
+HI_RES_IMAGES_STORE = config['IMAGE']['download_path']
+RESIZE_IMAGES_STORE = config['IMAGE']['resize_path']
+
+IMAGES_MIN_HEIGHT = int(config['IMAGE']['resize_height'])
+IMAGES_MIN_WIDTH  = int(config['IMAGE']['resize_width'])
+# IMAGES_THUMBS     = {
+#     'resize': (int(config['IMAGE']['resize_height']), int(config['IMAGE']['resize_width'])),
+# }
+format = config['IMAGE']['format']
+
+
+
+
+
+
 
 
 BOT_NAME = 'image_crawler'
@@ -62,10 +92,9 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
 ITEM_PIPELINES = {
-   'image_crawler.pipelines.FlickrDownloadImagePipeline': 1,
-   'image_crawler.pipelines.MongoDBPipeline': 2,
+   'image_crawler.pipelines.FlickrDownloadImagePipeline': 200,
+   'image_crawler.pipelines.MongoDBPipeline': 300,
 }
-IMAGES_STORE = '.'
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
