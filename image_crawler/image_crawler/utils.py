@@ -2,6 +2,8 @@ from http.cookies import SimpleCookie
 import os
 from datetime import datetime
 import requests
+from .settings import USER_AGENT_LIST
+import random
 
 
 class UtilsProcess:
@@ -19,18 +21,13 @@ class UtilsProcess:
         'url_c'  : ['height_c', 'width_c'],
     }
 
-    EXIF_STANDARD = {
-        'Make': 'make',
-        'Model': 'Model',
-        'ExposureTime': 'shutterspeed',
-        'FNumber': 'fstop',
-        'ISO': 'iso',
-        'LensModel': 'lens',
-        'FocalLength': 'focallength',
-    }
-        
-    # Parse API Key of the Website
+   
 
+    # Random User Agent:
+    def random_user_agent(self):
+        return random.choice(USER_AGENT_LIST)   
+
+    # Parse API Key of the Website
     def parse_api_key(self, tag , url, name):
         if name == 'flickr':
             searched_tag_url = url.format(tag)
@@ -38,14 +35,16 @@ class UtilsProcess:
             return str(str(str(response).split('root.YUI_config.flickr.api.site_key = "')[1]).split('";')[0])
 
     # Parse Cookie For Request
-    def cookie_parser(self):
-        cookie_string = self.COOKIE_STRING
+    def cookie_parser(self, cookie_string):
+        
         cookie = SimpleCookie()
         cookie.load(cookie_string)
 
         cookies = {}
         for key,morsel in cookie.items():
             cookies[key] = morsel.value
+        
+        print(cookies)
         return cookies
     
     # Return Date Time Format: yyyy-mm-dd

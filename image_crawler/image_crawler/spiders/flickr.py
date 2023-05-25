@@ -2,7 +2,7 @@ import scrapy
 import argparse
 import json
 from ..utils import utils
-from ..settings import flickr_url, flickr_api
+from ..settings import flickr_url, flickr_api, EXIF_STANDARD
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import requests
 
@@ -11,25 +11,29 @@ class IndexSpider(scrapy.Spider):
 
     name                = 'flickr'
     init_url            = 'https://www.flickr.com'
-    photo_url           = 'https://www.flickr.com/photos' # photo_id and owner_id
+    photo_url           = 'https://www.flickr.com/photos' #  owner_id and photo_id 
     count               = 0
     tag                 = None
     flickr_api_key      = ''
         
 
     def start_requests(self):
-        i                   = 0
+        
         tag                 = self.tag
         self.flickr_api_key = utils.parse_api_key(tag, flickr_url, self.name)
         
-        # Setup loop for pages
-        while True:
-            i+=1
+        # i = 0
+        # while True:
+        #     i+=1
+        #     if i == 50: 
+        #         break
+        for i in range(0,21):
             url = flickr_api.format(i ,tag, self.flickr_api_key)
             yield scrapy.Request(
                 url = url,
                 callback = self.get_all_photos
             )
+
 
     def get_all_photos(self, response, **kwargs):
             
@@ -41,7 +45,7 @@ class IndexSpider(scrapy.Spider):
             size      = []
             owner_id  = photo['owner']
             photo_id  = photo['id']
-            image     = f"flickr_{photo_id}_{owner_id}" # Get this one       
+            image     = f"{self.name}_{photo_id}_{owner_id}" # Get this one       
             page = f'{self.photo_url}/{owner_id}/{photo_id}'
 
             for i in list(utils.IMAGE_SIZE.keys()):
@@ -89,7 +93,12 @@ class IndexSpider(scrapy.Spider):
 
         # Continue the process
         for i in data_exif:
-            for key, value in utils.EXIF_STANDARD.items():
+
+            # tag       = i['tag']
+            # content   = i['raw']['_content']
+            # exif[tag] = content
+
+            for key, value in EXIF_STANDARD.items():
                 if i['tag'] == key:
                     exif[value] = i['raw']['_content'] 
                     break
@@ -183,7 +192,7 @@ class IndexSpider(scrapy.Spider):
             "rating"     : "",                                   # Specify the rating of the image
             "crawl_id"   : 1,                                    # Generate crawl id
             "crawl_note" : "No",                                 # Generate crawl note
-            "crawl_count": self.count,                           # Generate crawl count
+            #"crawl_count": self.count,                          # Crawl Count Is Set Based on the Pipelines
 
             "image_urls" : item['image_urls']                    # Field to download image
         }
