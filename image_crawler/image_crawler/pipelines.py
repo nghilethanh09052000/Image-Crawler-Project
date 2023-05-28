@@ -12,26 +12,39 @@ import pymongo
 from .utils import utils
 import os
 from PIL import Image
+from PIL import ImageFile
 from .settings import MONGO_DB_URL, MONGO_DB_DATABASE, COLLECTION_NAME, HI_RES_IMAGES_STORE, RESIZE_IMAGES_STORE, METADATA_STORE ,IMAGES_MIN_HEIGHT, IMAGES_MIN_WIDTH
+import json
 
 
 
-
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class MongoDBPipeline():
      
     def open_spider(self, spider):
+
         self.client = pymongo.MongoClient(MONGO_DB_URL)
-        self.db = self.client[MONGO_DB_DATABASE]
+        self.db = "" # For Test
+
+        #self.db = self.client[MONGO_DB_DATABASE]
     
     def close_spider(self, spider):
         self.client.close()
 
     def process_item(self, item, spider):
-        self.db[COLLECTION_NAME].insert_one(item)
+
+        database_name = item['db_name']
+        
+        del item['db_name']
+
+        self.db = self.client[database_name]  # For Test
+        self.db[item['root_class']].insert_one(item) # For Test
+
+
+        # self.db[COLLECTION_NAME].insert_one(item) # Unrem for production
         
         del item['_id'] 
-        del item['image_urls']
         return item
  
 
@@ -62,7 +75,7 @@ class DownloadImagePipeline(ImagesPipeline):
     
     def item_completed(self, results, item, info):
         
-        status = [ x['status'] for ok, x in results if ok ] # Downloaded is list ['downloaded'] or []
+        status = [ x['status'] for ok, x in results if ok ] # Downloaded is list ['downloaded'] or [] for failure
 
         if len(status) == 0:
             raise DropItem("Image has not been downloaded")
@@ -70,35 +83,34 @@ class DownloadImagePipeline(ImagesPipeline):
         image_paths = [ x['path'] for ok, x in results if ok ]
         self.count += 1
         item['crawl_count'] = self.count
-        
+        del item['image_urls']
         image_path = image_paths[0]
 
-        if os.path.exists(image_path):
+        try:
             img                = Image.open(image_path)
             cropped_img        = self.crop_image(img)
             resized_img        = self.resize_image(cropped_img)
             root_class         = item.get('root_class')
-            image_name         = f"{item.get('image')}.jpg"
+            image_name         = f"{item.get('image')}.jpg" 
             resized_folder     = RESIZE_IMAGES_STORE.format(root_class)
             resized_image_path = os.path.abspath(os.getcwd())+'\\'+f'{resized_folder}'
 
             if not os.path.exists(resized_image_path): os.makedirs(resized_image_path)
-            resized_img.save(os.path.join(resized_image_path, image_name))
-
-        return item
+            resized_img.save(os.path.join(resized_image_path, image_name))        
+            return item    
+        
+        except OSError as error:
+            print(f"{error} ({image_path})")
+            with open("./error_file_list.txt", "a") as error_log:
+                error_log.write(str(image_path))
 
     def crop_image(self, image):
         width, height = image.size
 
         # Calculate the center coordinate
-        # left   = (width -  IMAGES_MIN_WIDTH) // 2
-        # top    = (height - IMAGES_MIN_HEIGHT) // 2
-        # right  = (width + IMAGES_MIN_WIDTH) // 2
-        # bottom = (height + IMAGES_MIN_HEIGHT) // 2
-
-        left = (width - min(width, height)) // 2
-        top = (height - min(width, height)) // 2
-        right = left + min(width, height)
+        left   = (width - min(width, height)) // 2
+        top    = (height - min(width, height)) // 2
+        right  = left + min(width, height)
         bottom = top + min(width, height)
 
         cropped_image = image.crop((left, top, right, bottom))
@@ -108,7 +120,7 @@ class DownloadImagePipeline(ImagesPipeline):
         return image.resize((IMAGES_MIN_HEIGHT, IMAGES_MIN_WIDTH))
     
 
-class TextFilePipeLine():
+class JsonFilePipeLine():
 
     def open_spider(self, spider):
         self.init_path = os.path.abspath(os.getcwd())
@@ -120,9 +132,9 @@ class TextFilePipeLine():
 
         if not os.path.exists(metadata_location): os.makedirs(metadata_location) 
 
-        file_name          = f"{item.get('image')}.txt" 
+        file_name          = f"{item.get('image')}.json" 
         file_path          = os.path.join(metadata_location, file_name)   
 
         with open(file_path, 'w', encoding="utf-8") as file:
-            file.write(str(item))
+            json.dump(item, file)
         return item

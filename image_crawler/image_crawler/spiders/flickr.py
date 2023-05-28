@@ -1,11 +1,10 @@
 import scrapy
 import argparse
 import json
-from ..utils import utils
-from ..settings import flickr_url, flickr_api, EXIF_STANDARD
+from ..settings import flickr_url, flickr_api
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import requests
-
+from datetime import datetime
 
 class IndexSpider(scrapy.Spider):
 
@@ -15,25 +14,43 @@ class IndexSpider(scrapy.Spider):
     count               = 0
     tag                 = None
     flickr_api_key      = ''
-        
 
+    IMAGE_SIZE = {
+        'url_sq' : ['height_sq', 'width_sq'],
+        'url_q'  : ['height_q', 'width_q'],
+        'url_t'  : ['height_t', 'width_t'],
+        'url_s'  : ['height_s', 'width_s'],
+        'url_n'  : ['height_n', 'width_n'],
+        'url_w'  : ['height_w', 'width_w'],
+        'url_m'  : ['height_m', 'width_m'],
+        'url_z'  : ['height_z', 'width_z'],
+        'url_c'  : ['height_c', 'width_c'],
+    }
+  
+
+    # Parse API Key of the Website
+    def parse_api_key(self, tag , url):
+        searched_tag_url = url.format(tag)
+        response         = requests.get(searched_tag_url).text
+        return str(str(str(response).split('root.YUI_config.flickr.api.site_key = "')[1]).split('";')[0])
+        
+    # Return Date Time Format: yyyy-mm-dd
+    def format_date_time(self, date_string):
+        date = datetime.strptime(date_string, "%B %d, %Y")
+        formatted_date_uploaded = date.strftime("%Y-%m-%d")
+        return formatted_date_uploaded
+      
+    # Start Request
     def start_requests(self):
-        
         tag                 = self.tag
-        self.flickr_api_key = utils.parse_api_key(tag, flickr_url, self.name)
+        self.flickr_api_key = self.parse_api_key(tag, flickr_url)
         
-        # i = 0
-        # while True:
-        #     i+=1
-        #     if i == 50: 
-        #         break
-        for i in range(0,21):
+        for i in range(1, 51):
             url = flickr_api.format(i ,tag, self.flickr_api_key)
             yield scrapy.Request(
                 url = url,
                 callback = self.get_all_photos
             )
-
 
     def get_all_photos(self, response, **kwargs):
             
@@ -48,12 +65,12 @@ class IndexSpider(scrapy.Spider):
             image     = f"{self.name}_{photo_id}_{owner_id}" # Get this one       
             page = f'{self.photo_url}/{owner_id}/{photo_id}'
 
-            for i in list(utils.IMAGE_SIZE.keys()):
+            for i in list(self.IMAGE_SIZE.keys()):
                 if photo.get(i):
 
                     url    = photo[i]
-                    height = photo[utils.IMAGE_SIZE[i][0]]
-                    width  = photo[utils.IMAGE_SIZE[i][1]]
+                    height = photo[self.IMAGE_SIZE[i][0]]
+                    width  = photo[self.IMAGE_SIZE[i][1]]
 
                     size.append({
                         'url'   :  url,
@@ -79,8 +96,7 @@ class IndexSpider(scrapy.Spider):
             )
             
     def get_exif(self, response):
-
-        exif      = {}
+        
         item      = response.meta['item']
         photo_id  = response.meta['photo_id']
 
@@ -92,16 +108,42 @@ class IndexSpider(scrapy.Spider):
         if not data_exif: return
 
         # Continue the process
+        make         = ""
+        model        = ""
+        shutterspeed = ""
+        fstop        = ""
+        iso          = ""
+        focallength  = ""
+        lens         = ""
+
         for i in data_exif:
-
-            # tag       = i['tag']
-            # content   = i['raw']['_content']
-            # exif[tag] = content
-
-            for key, value in EXIF_STANDARD.items():
-                if i['tag'] == key:
-                    exif[value] = i['raw']['_content'] 
-                    break
+            if i.get('tag') =='Make':
+                make = i.get('raw').get('_content')
+            elif i.get('tag') =='Model':
+                model = i.get('raw').get('_content')
+            elif i.get('tag') =='ExposureTime':
+                shutterspeed = i.get('raw').get('_content')
+            elif i.get('tag') =='FNumber':
+                fstop = i.get('raw').get('_content')
+            elif i.get('tag') =='ISO':
+                iso = i.get('raw').get('_content')     
+            elif i.get('tag') =='FocalLength':
+                focallength = i.get('raw').get('_content')
+            elif i.get('tag') == 'LensModel':
+                lens = i.get('raw').get('_content')
+                
+            exif = {}
+            if make or model or shutterspeed or fstop or iso or focallength:     
+                exif = {
+                        'make'        : make,
+                        'model'       : model,
+                        'shutterspeed': f'{shutterspeed}s' if len(shutterspeed) > 0 else shutterspeed,
+                        'fstop'       : f'f/{fstop}' if len(fstop) > 0 else fstop,
+                        'iso'         : iso,
+                        'focallength' : focallength.replace(" ","") if len(focallength) > 0 else focallength,
+                        'lens'        : lens
+                    }
+            
         
         # Return when exif does not have any key based on the EXIF_STANDARD standard
         if not bool(exif): return
@@ -133,17 +175,17 @@ class IndexSpider(scrapy.Spider):
         
         yield scrapy.Request(
             url = page,
-            callback = self.get_remain_data,
+            callback = self.get_stats,
             meta = {
                 'item': item
             }
         )
         
-    def get_remain_data(self, response):
+    def get_stats(self, response):
 
         item                    = response.meta['item']
         uploaded                = response.xpath('normalize-space(//div[@class="date-posted clear-float "]/span/text())').get()
-        formatted_date_uploaded = utils.format_date_time(uploaded.replace("Uploaded on ", "")) # => Return yyyy-dd-mm format
+        formatted_date_uploaded = self.format_date_time(uploaded.replace("Uploaded on ", "")) # => Return yyyy-dd-mm format
 
         # Can not find geographical location on this website
         gps  = {
@@ -151,10 +193,21 @@ class IndexSpider(scrapy.Spider):
             "longitude" : 0 
         }
 
-        # Use this images_urls array to download image:
-        image_url  = response.urljoin(response.xpath('//img[@class="main-photo"]/@src').get())
-        image_urls = [image_url]
-        
+
+        views     = response.xpath('normalize-space(//div[@class="right-stats-details-container"]/div[1]/span[1]/text())').get()
+        likes     = response.xpath('normalize-space(//div[@class="right-stats-details-container"]/div[2]/span[1]/text())').get()
+        comments  = response.xpath('normalize-space(//div[@class="right-stats-details-container"]/div[3]/span[1]/text())').get()
+
+        if len(views) > 0: views = int(views.replace(",", "")) if ',' in views else int(views)
+        if len(likes) > 0: likes = int(likes.replace(",", "")) if ',' in likes else int(likes)
+        if len(comments) > 0: comments = int(comments.replace(",", "")) if ',' in comments else int(comments)
+
+        stat = {
+            'views'   : views,
+            'likes'   : likes,
+            'comments': comments,
+            'download': None
+        }
 
         item = {
             **item,
@@ -163,16 +216,31 @@ class IndexSpider(scrapy.Spider):
             'license'   : response.xpath('normalize-space(//div[@class="photo-license-info"]/a/span/text())').get(),
             'uploaded'  : formatted_date_uploaded,
             'gps'       : gps,
-            'stat'      : {
-                'views'   : response.xpath('normalize-space(//div[@class="right-stats-details-container"]/div[1]/span[1]/text())').get(),
-                'likes'   : response.xpath('normalize-space(//div[@class="right-stats-details-container"]/div[2]/span[1]/text())').get(),
-                'comments': response.xpath('normalize-space(//div[@class="right-stats-details-container"]/div[3]/span[1]/text())').get()
-            },
-
-            'image_urls': image_urls
+            'stat'      : stat,
         }
 
-        self.count += 1
+
+        page = item['page']
+        yield scrapy.Request(
+            url = page + '/sizes/o/', # Come to the original size of image download
+            callback = self.get_image_download_url,
+            meta = {
+                'item': item
+            }
+        )
+
+    def get_image_download_url(self,response):
+        
+        item               = response.meta['item']
+
+        # Use this images_urls array to download image:
+        download_image_url = response.xpath('//div[@id="all-sizes-header"]/dl[2]/dd/a/@href').get()
+        image_urls         = [download_image_url]
+        
+        item = {
+            **item,
+            'image_urls': image_urls
+        }
 
         yield {
             "image"      : item['image'],                        # Specify the name of the image (we can point out the image_id and owner_id)
@@ -189,12 +257,14 @@ class IndexSpider(scrapy.Spider):
             "size"       : item['size'],                         # Specify all sizes of this image
             "root_class" : self.tag,                             # Specify the root_class (the tag when you search for it)
             "sub_class"  : ["landscape", "mountain", "nature"],  # Specify some subclass of the image
-            "rating"     : "",                                   # Specify the rating of the image
+            "rating"     : None,                                 # Specify the rating of the image
             "crawl_id"   : 1,                                    # Generate crawl id
             "crawl_note" : "No",                                 # Generate crawl note
+
             #"crawl_count": self.count,                          # Crawl Count Is Set Based on the Pipelines
 
-            "image_urls" : item['image_urls']                    # Field to download image
+            "image_urls" : item['image_urls'],                   # Field to download image
+            "db_name"    : self.name                             # Field for testing
         }
 
    

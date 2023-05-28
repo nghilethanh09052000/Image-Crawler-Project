@@ -9,6 +9,20 @@ from scrapy import signals
 from itemadapter import is_item, ItemAdapter
 
 
+class ShowRequestsHeadersMiddleWare:
+    def process_request(self, request, spider):
+        print('------------------------------------------------------')
+        print('Request Headers:', request.headers )
+        print('------------------------------------------------------')
+        return None
+    
+    def process_response(self, request, response, spider):
+        print('------------------------------------------------------')
+        print('Response Headers:', response.headers )
+        print('------------------------------------------------------')
+        return response
+
+
 class ImageCrawlerSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the
