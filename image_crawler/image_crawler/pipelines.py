@@ -13,8 +13,9 @@ from .utils import utils
 import os
 from PIL import Image
 from PIL import ImageFile
-from .settings import MONGO_DB_URL, MONGO_DB_DATABASE, COLLECTION_NAME, HI_RES_IMAGES_STORE, RESIZE_IMAGES_STORE, METADATA_STORE ,IMAGES_MIN_HEIGHT, IMAGES_MIN_WIDTH
+from .settings import limit, MONGO_DB_URL, MONGO_DB_DATABASE, COLLECTION_NAME, HI_RES_IMAGES_STORE, RESIZE_IMAGES_STORE, METADATA_STORE ,IMAGES_MIN_HEIGHT, IMAGES_MIN_WIDTH
 import json
+from scrapy.exceptions import CloseSpider
 
 
 
@@ -25,25 +26,13 @@ class MongoDBPipeline():
     def open_spider(self, spider):
 
         self.client = pymongo.MongoClient(MONGO_DB_URL)
-        self.db = "" # For Test
-
-        #self.db = self.client[MONGO_DB_DATABASE]
+        self.db = self.client[MONGO_DB_DATABASE]
     
     def close_spider(self, spider):
         self.client.close()
 
     def process_item(self, item, spider):
-
-        database_name = item['db_name']
-        
-        del item['db_name']
-
-        self.db = self.client[database_name]  # For Test
-        self.db[item['root_class']].insert_one(item) # For Test
-
-
-        # self.db[COLLECTION_NAME].insert_one(item) # Unrem for production
-        
+        self.db[COLLECTION_NAME].insert_one(item) # Unrem for production
         del item['_id'] 
         return item
  
@@ -55,7 +44,9 @@ class DownloadImagePipeline(ImagesPipeline):
         self.count = count
         super().__init__(store_uri, download_func, settings)
 
+
     def get_media_requests(self, item, info):
+
         return [
             Request(
             x, 
@@ -65,13 +56,14 @@ class DownloadImagePipeline(ImagesPipeline):
             }
             ) for x in item.get(self.images_urls_field, [])
         ] 
-        
+    
     def file_path(self, request, response=None, info=None, *, item=None):
 
         image_name    = request.meta['image_name']
         tag           = request.meta['tag']
         file_location = f'{HI_RES_IMAGES_STORE.format(tag)}' + '\\' + f'{image_name}.jpg'     
         return file_location
+   
     
     def item_completed(self, results, item, info):
         
@@ -83,9 +75,8 @@ class DownloadImagePipeline(ImagesPipeline):
         image_paths = [ x['path'] for ok, x in results if ok ]
         self.count += 1
         item['crawl_count'] = self.count
-        del item['image_urls']
-        image_path = image_paths[0]
 
+        image_path = image_paths[0]
         try:
             img                = Image.open(image_path)
             cropped_img        = self.crop_image(img)
@@ -96,7 +87,13 @@ class DownloadImagePipeline(ImagesPipeline):
             resized_image_path = os.path.abspath(os.getcwd())+'\\'+f'{resized_folder}'
 
             if not os.path.exists(resized_image_path): os.makedirs(resized_image_path)
-            resized_img.save(os.path.join(resized_image_path, image_name))        
+            saved_image_path = os.path.join(resized_image_path, image_name)
+            resized_img.save(saved_image_path)        
+
+            # Delete The Image Path
+            if os.path.exists(saved_image_path):
+                os.remove(image_path)
+
             return item    
         
         except OSError as error:

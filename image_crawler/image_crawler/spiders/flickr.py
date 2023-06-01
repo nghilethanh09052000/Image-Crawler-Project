@@ -1,7 +1,7 @@
 import scrapy
 import argparse
 import json
-from ..settings import flickr_url, flickr_api
+from ..settings import flickr_url, flickr_api, flickr_likes, flickr_comments, flickr_views
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import requests
 from datetime import datetime
@@ -11,7 +11,6 @@ class IndexSpider(scrapy.Spider):
     name                = 'flickr'
     init_url            = 'https://www.flickr.com'
     photo_url           = 'https://www.flickr.com/photos' #  owner_id and photo_id 
-    count               = 0
     tag                 = None
     flickr_api_key      = ''
 
@@ -26,7 +25,7 @@ class IndexSpider(scrapy.Spider):
         'url_z'  : ['height_z', 'width_z'],
         'url_c'  : ['height_c', 'width_c'],
     }
-  
+    
 
     # Parse API Key of the Website
     def parse_api_key(self, tag , url):
@@ -42,10 +41,11 @@ class IndexSpider(scrapy.Spider):
       
     # Start Request
     def start_requests(self):
+
         tag                 = self.tag
         self.flickr_api_key = self.parse_api_key(tag, flickr_url)
         
-        for i in range(1, 51):
+        for i in range(1, 120000):
             url = flickr_api.format(i ,tag, self.flickr_api_key)
             yield scrapy.Request(
                 url = url,
@@ -193,6 +193,8 @@ class IndexSpider(scrapy.Spider):
             "longitude" : 0 
         }
 
+        image_url  = response.urljoin(response.xpath('//img[@class="main-photo"]/@src').get())
+        image_urls = [image_url]
 
         views     = response.xpath('normalize-space(//div[@class="right-stats-details-container"]/div[1]/span[1]/text())').get()
         likes     = response.xpath('normalize-space(//div[@class="right-stats-details-container"]/div[2]/span[1]/text())').get()
@@ -201,6 +203,11 @@ class IndexSpider(scrapy.Spider):
         if len(views) > 0: views = int(views.replace(",", "")) if ',' in views else int(views)
         if len(likes) > 0: likes = int(likes.replace(",", "")) if ',' in likes else int(likes)
         if len(comments) > 0: comments = int(comments.replace(",", "")) if ',' in comments else int(comments)
+
+        # if not (
+        #         views >= flickr_views and 
+        #         likes >= flickr_likes 
+        #     ): return
 
         stat = {
             'views'   : views,
@@ -217,30 +224,10 @@ class IndexSpider(scrapy.Spider):
             'uploaded'  : formatted_date_uploaded,
             'gps'       : gps,
             'stat'      : stat,
-        }
 
-
-        page = item['page']
-        yield scrapy.Request(
-            url = page + '/sizes/o/', # Come to the original size of image download
-            callback = self.get_image_download_url,
-            meta = {
-                'item': item
-            }
-        )
-
-    def get_image_download_url(self,response):
-        
-        item               = response.meta['item']
-
-        # Use this images_urls array to download image:
-        download_image_url = response.xpath('//div[@id="all-sizes-header"]/dl[2]/dd/a/@href').get()
-        image_urls         = [download_image_url]
-        
-        item = {
-            **item,
             'image_urls': image_urls
         }
+
 
         yield {
             "image"      : item['image'],                        # Specify the name of the image (we can point out the image_id and owner_id)
@@ -264,7 +251,6 @@ class IndexSpider(scrapy.Spider):
             #"crawl_count": self.count,                          # Crawl Count Is Set Based on the Pipelines
 
             "image_urls" : item['image_urls'],                   # Field to download image
-            "db_name"    : self.name                             # Field for testing
         }
 
    
