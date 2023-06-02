@@ -61,7 +61,11 @@ class DownloadImagePipeline(ImagesPipeline):
 
         image_name    = request.meta['image_name']
         tag           = request.meta['tag']
-        file_location = f'{HI_RES_IMAGES_STORE.format(tag)}' + '\\' + f'{image_name}.jpg'     
+
+        image_urls     = item.get(self.images_urls_field, [])
+        file_extension = os.path.splitext(image_urls[0])[1]
+
+        file_location = f'{HI_RES_IMAGES_STORE.format(tag)}' + '\\' + f'{image_name}{file_extension}'     
         return file_location
    
     
@@ -73,6 +77,11 @@ class DownloadImagePipeline(ImagesPipeline):
             raise DropItem("Image has not been downloaded")
         
         image_paths = [ x['path'] for ok, x in results if ok ]
+        init_image_name = os.path.basename(image_paths[0])
+
+        # Get the file extension from the image name
+        file_extension = os.path.splitext(init_image_name)[1]
+
         self.count += 1
         item['crawl_count'] = self.count
 
@@ -82,7 +91,7 @@ class DownloadImagePipeline(ImagesPipeline):
             cropped_img        = self.crop_image(img)
             resized_img        = self.resize_image(cropped_img)
             root_class         = item.get('root_class')
-            image_name         = f"{item.get('image')}.jpg" 
+            image_name         = f"{item.get('image')}{file_extension}"
             resized_folder     = RESIZE_IMAGES_STORE.format(root_class)
             resized_image_path = os.path.abspath(os.getcwd())+'\\'+f'{resized_folder}'
 

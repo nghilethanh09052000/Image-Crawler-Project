@@ -7,18 +7,22 @@ from scrapy import signals
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
+import requests
+
 
 
 class ShowRequestsHeadersMiddleWare:
     def process_request(self, request, spider):
+
         print('------------------------------------------------------')
         print('Request Headers:', request.headers )
         print('------------------------------------------------------')
+        
         return None
     
     def process_response(self, request, response, spider):
         print('------------------------------------------------------')
-        print('Response Headers:', response.headers )
+        print('Response:', response )
         print('------------------------------------------------------')
         return response
 

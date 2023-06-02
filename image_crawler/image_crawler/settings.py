@@ -18,8 +18,8 @@ pexels_downloads = config['PEXELS']['pexels_downloads']
 
 #[PIXABAY]
 pixabay_url       = config['PIXABAY']['pixabay_url']
-pixabay_views     = config['PIXABAY']['pixabay_views']
-pixabay_likes     = config['PIXABAY']['pixabay_likes']
+pixabay_views     = int(config['PIXABAY']['pixabay_views'])
+pixabay_likes     = int(config['PIXABAY']['pixabay_likes'])
 pixabay_downloads = config['PIXABAY']['pixabay_downloads']
 
 #[UNSPLASH]
@@ -154,7 +154,7 @@ ROBOTSTXT_OBEY = False
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-   #'image_crawler.middlewares.ShowRequestsHeadersMiddleWare': 500,
+   #'image_crawler.middlewares.ShowRequestsHeadersMiddleWare': 520,
    'scrapy_cloudflare_middleware.middlewares.CloudFlareMiddleware': 560,
    'scrapy_selenium.SeleniumMiddleware': 800
 }
@@ -195,7 +195,7 @@ ITEM_PIPELINES = {
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-#DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
+DUPEFILTER_CLASS = 'scrapy.dupefilters.RFPDupeFilter'
 RETRY_ENABLED = True
 MEDIA_ALLOW_REDIRECTS = True
 FEED_EXPORT_ENCODING = "utf-8"
