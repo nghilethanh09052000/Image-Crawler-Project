@@ -228,6 +228,12 @@ class IndexSpider(scrapy.Spider):
             'image_urls': image_urls
         }
 
+        tag = ""
+        if self.tag == 'long%20exposure':
+            tag = 'long exposure'
+        else:
+            tag = self.tag
+
 
         yield {
             "image"      : item['image'],                        # Specify the name of the image (we can point out the image_id and owner_id)
@@ -242,8 +248,8 @@ class IndexSpider(scrapy.Spider):
             "title"      : item['title'],                        # Specify the title of image
             "gps"        : item['gps'],                          # Specify the longtitude and latitude
             "size"       : item['size'],                         # Specify all sizes of this image
-            "root_class" : self.tag,                             # Specify the root_class (the tag when you search for it)
-            "sub_class"  : self.tag,                             # Specify some subclass of the image
+            "root_class" : tag,                                  # Specify the root_class (the tag when you search for it)
+            "sub_class"  : tag,                                  # Specify some subclass of the image
             "rating"     : None,                                 # Specify the rating of the image
             "crawl_id"   : 1,                                    # Generate crawl id
             "crawl_note" : "No",                                 # Generate crawl note

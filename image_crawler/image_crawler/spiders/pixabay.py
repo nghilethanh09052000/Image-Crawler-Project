@@ -243,6 +243,12 @@ class PixabaySpider(scrapy.Spider):
 
         image_urls = [ size[1].get('url') or size[0].get('url') ]
 
+        tag = ""
+        if self.tag == 'long%20exposure':
+            tag = 'long exposure'
+        else:
+            tag = self.tag
+
 
         item = {
             "image"      : image,                                # Specify the name of the image (we can point out the image_id and owner_id)
@@ -257,8 +263,8 @@ class PixabaySpider(scrapy.Spider):
             "title"      : title,                                # Specify the title of image
             "gps"        : gps,                                  # Specify the longtitude and latitude
             "size"       : size,                                 # Specify all sizes of this image
-            "root_class" : self.tag,                             # Specify the root_class (the tag when you search for it)
-            "sub_class"  : self.tag,                             # Specify some subclass of the image
+            "root_class" : tag,                                  # Specify the root_class (the tag when you search for it)
+            "sub_class"  : tag,                                  # Specify some subclass of the image
             "rating"     : None,                                 # Specify the rating of the image
             "crawl_id"   : 1,                                    # Generate crawl id
             "crawl_note" : "No",                                 # Generate crawl note
