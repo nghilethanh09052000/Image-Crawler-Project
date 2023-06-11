@@ -59,13 +59,15 @@ class DownloadImagePipeline(ImagesPipeline):
     
     def file_path(self, request, response=None, info=None, *, item=None):
 
-        image_name    = request.meta['image_name']
-        tag           = request.meta['tag']
+        image_name     = request.meta['image_name']
+        tag            = request.meta['tag']
+        name           = request.meta.get('name')
 
         image_urls     = item.get(self.images_urls_field, [])
         file_extension = os.path.splitext(image_urls[0])[1]
 
-        file_location = f'{HI_RES_IMAGES_STORE.format(tag)}' + '\\' + f'{image_name}{file_extension}'     
+        file_location  = f'{HI_RES_IMAGES_STORE.format(tag)}' + '\\' + f'{image_name}{file_extension if name else ".jpg"}'    
+
         return file_location
    
     
@@ -79,7 +81,7 @@ class DownloadImagePipeline(ImagesPipeline):
         image_paths = [ x['path'] for ok, x in results if ok ]
         init_image_name = os.path.basename(image_paths[0])
 
-        # Get the file extension from the image name
+        # Get the file extension from the image name 
         file_extension = os.path.splitext(init_image_name)[1]
 
         self.count += 1

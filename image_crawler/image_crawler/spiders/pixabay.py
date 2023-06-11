@@ -8,40 +8,28 @@ class PixabaySpider(scrapy.Spider):
     name         = 'pixabay'
     init_url     = 'https://pixabay.com'
     i            = 1
-    j            = 0
-    count_photos = 0
 
     def start_requests(self):
 
         tag = self.tag
 
-        while True:
-            
-            if self.i == 2916: break
+        post_body = {
+            "cmd"       : "request.get",
+            "url"       : pixabay_url.format(tag, self.i),
+            "maxTimeout": 60000
+        }
 
-            if (self.j + 1) == self.count_photos:
-
-                self.i +=1
-                self.count_photos = 0
-                self.j = 0
-
-            post_body = {
-                "cmd"       : "request.get",
-                "url"       : pixabay_url.format(tag, self.i),
-                "maxTimeout": 60000
-            }
-
-            json_data = json.dumps(post_body)
-            
-            yield scrapy.Request(
-                url      = 'http://localhost:8191/v1',
-                method   = "POST",
-                headers  = {
-                    'Content-Type': 'application/json'
-                },
-                body = json_data,
-                callback = self.get_all_photos
-            )
+        json_data = json.dumps(post_body)
+        
+        yield scrapy.Request(
+            url      = 'http://localhost:8191/v1',
+            method   = "POST",
+            headers  = {
+                'Content-Type': 'application/json'
+            },
+            body = json_data,
+            callback = self.get_all_photos
+        )
 
     def get_all_photos(self, response, **kwargs):
         
@@ -55,16 +43,19 @@ class PixabaySpider(scrapy.Spider):
         headers            = {"User-Agent": user_agent}
         html               = data['solution']['response']
 
-        selector           = scrapy.Selector(text=html)
+
+        selector   = scrapy.Selector(text=html)
         photo_urls = selector.xpath('//div[@class="cell--B7yKd"]/div/a/@href').getall()
 
-        self.count_photos = len(photo_urls)
+       
 
-        for self.j in range(len(photo_urls)):             
+        next_page = selector.xpath('//div[contains(@class,"nextPage--")]/a/span')
 
-            photo_url = photo_urls[self.j]
+        for j in range(len(photo_urls)):             
 
-            print('Photo Count:' , self.j)
+            photo_url = photo_urls[j]
+
+            print(f'Page Count: {self.i} --- Photo Count:{j}')
 
             response = requests.get(
                     photo_url,
@@ -72,7 +63,6 @@ class PixabaySpider(scrapy.Spider):
                     cookies = clean_cookies_dict
             )
 
-            
             content = response.content
          
             bootstrap_url    = ''
@@ -80,8 +70,8 @@ class PixabaySpider(scrapy.Spider):
             selector         = scrapy.Selector(text=content)
             script_tags      = selector.xpath('//script/text()').getall()
             for script_tag in script_tags:
-                    if "window.__PAGE__ =" in script_tag.strip():
-                        bootstrap_string = script_tag.strip()
+                if "window.__PAGE__ =" in script_tag.strip():
+                    bootstrap_string = script_tag.strip()
 
             start_index = bootstrap_string.find("window.__BOOTSTRAP_URL__ = '") + len("window.__BOOTSTRAP_URL__ = '")
             end_index = bootstrap_string.find("'", start_index)
@@ -109,6 +99,29 @@ class PixabaySpider(scrapy.Spider):
                     'photo_url': photo_url                    
                 }
             )
+    
+
+        if next_page:
+
+            self.i+=1
+
+            post_body = {
+                "cmd"       : "request.get",
+                "url"       : pixabay_url.format(self.tag, self.i),
+                "maxTimeout": 60000
+            }
+
+            json_data = json.dumps(post_body)
+            
+            yield scrapy.Request(
+                url      = 'http://localhost:8191/v1',
+                method   = "POST",
+                headers  = {
+                    'Content-Type': 'application/json'
+                },
+                body = json_data,
+                callback = self.get_all_photos
+            )
 
 
     def parse(self, response, **kwargs):
@@ -123,6 +136,10 @@ class PixabaySpider(scrapy.Spider):
         split_second_content = '</pre></body></html>'
 
         json_data = html_data.split(split_first_content)[1].split(split_second_content)[0]
+
+        # Return when html is failed (404)
+        if not json_data: return
+
         data      = json.loads(json_data)
 
         photo     = data['page']['mediaItem']
@@ -132,11 +149,11 @@ class PixabaySpider(scrapy.Spider):
         comments = int(photo['commentCount'])
         download = int(photo['downloadCount'])
 
-        if not (
-            views >= pixabay_views
-            and
-            likes >= pixabay_likes
-        ): return
+        # if not (
+        #     views >= pixabay_views
+        #     and
+        #     likes >= pixabay_likes
+        # ): return
 
         stat = {
             'views'   : views,
@@ -241,7 +258,7 @@ class PixabaySpider(scrapy.Spider):
             "gps"        : gps,                                  # Specify the longtitude and latitude
             "size"       : size,                                 # Specify all sizes of this image
             "root_class" : self.tag,                             # Specify the root_class (the tag when you search for it)
-            "sub_class"  : ["landscape", "mountain", "nature"],  # Specify some subclass of the image
+            "sub_class"  : self.tag,                             # Specify some subclass of the image
             "rating"     : None,                                 # Specify the rating of the image
             "crawl_id"   : 1,                                    # Generate crawl id
             "crawl_note" : "No",                                 # Generate crawl note
@@ -249,6 +266,7 @@ class PixabaySpider(scrapy.Spider):
             #"crawl_count": self.count,                          # Crawl Count Is Set Based on the Pipelines
 
             "image_urls" : image_urls,                           # Field to download image
+            "name"       : self.name                             # Field for Pipeline to Download PNG file Extension
         }
 
 

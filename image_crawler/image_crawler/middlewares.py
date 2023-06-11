@@ -4,10 +4,21 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-
+from twisted.internet import reactor
+from twisted.internet.defer import Deferred
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
-import requests
+
+
+class DelayedRequestsMiddleware(object):
+    def process_request(self, request, spider):
+        delay_s = request.meta.get('delay_request_by', None)
+        if not delay_s:
+            return
+
+        deferred = Deferred()
+        reactor.callLater(delay_s, deferred.callback, None)
+        return deferred
 
 
 
@@ -15,14 +26,14 @@ class ShowRequestsHeadersMiddleWare:
     def process_request(self, request, spider):
 
         print('------------------------------------------------------')
-        print('Request Headers:', request.headers )
+        #print('Request Headers:', request.headers )
         print('------------------------------------------------------')
         
         return None
     
     def process_response(self, request, response, spider):
         print('------------------------------------------------------')
-        print('Response:', response )
+        #print('Response:', response )
         print('------------------------------------------------------')
         return response
 

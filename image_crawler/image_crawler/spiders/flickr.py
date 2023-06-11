@@ -243,7 +243,7 @@ class IndexSpider(scrapy.Spider):
             "gps"        : item['gps'],                          # Specify the longtitude and latitude
             "size"       : item['size'],                         # Specify all sizes of this image
             "root_class" : self.tag,                             # Specify the root_class (the tag when you search for it)
-            "sub_class"  : ["landscape", "mountain", "nature"],  # Specify some subclass of the image
+            "sub_class"  : self.tag,                             # Specify some subclass of the image
             "rating"     : None,                                 # Specify the rating of the image
             "crawl_id"   : 1,                                    # Generate crawl id
             "crawl_note" : "No",                                 # Generate crawl note
