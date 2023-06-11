@@ -72,7 +72,7 @@ a. For Flickr, Pexels, Unsplash: you can simply run by the following structure <
 <i>(Just replace the name of tag you want to crawl)</i>
 
 b. For Pixabay, you need a fast computer because of using docker, it will be taken up a lot of space on your computer
-i. Open the second terminal
-ii. Navigate to the flare_solver folder by typing `cd flare_solver`
-iii. Run `docker-compose up` and wait untill it finish the host name
-iv. Open the first terminal, read the instruction 3a above to start the crawling process
+. Open the second terminal
+. Navigate to the flare_solver folder by typing `cd flare_solver`
+. Run `docker-compose up` and wait untill it finish the host name
+. Open the first terminal, read the instruction 3a above to start the crawling process
