@@ -80,3 +80,5 @@ b. For Pixabay, you need a fast computer because of using docker, it will be tak
 . Run `docker-compose up` and wait untill it finish the host name
 
 . Open the first terminal, read the instruction 3a above to start the crawling process
+
+## III. Run the Image Website:
