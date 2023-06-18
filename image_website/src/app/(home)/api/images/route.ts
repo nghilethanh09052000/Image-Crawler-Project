@@ -9,7 +9,7 @@ export const GET = async (
 
   try {
     
-    const page = request.nextUrl.searchParams.get('page') || 1
+    const page = request.nextUrl?.searchParams?.get('page') || 1
     //const root_class = request.nextUrl.searchParams.get('root_class') || 1
 
 
@@ -44,3 +44,5 @@ export const GET = async (
     return NextResponse.json(`Failed to fetch all images, ${error}` , { status: 200 });
   }
 };
+
+export const dynamic = 'force-dynamic'
