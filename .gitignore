@@ -1,4 +1,7 @@
 .conda
+/image_crawler/download/*
+.node_modules
+download
 .node_modules
 .env
 .nghi
