@@ -21,7 +21,7 @@ export const GET = async (
     const skip = ( +page - 1 )*limit
 
     const thumbImages = await collection
-                              .find({root_class: tag})
+                              .find({root_class: tag}, { projection: { _id: false } })
                               .skip(skip)
                               .limit(limit)
                               .toArray()
