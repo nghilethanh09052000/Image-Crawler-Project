@@ -16,7 +16,7 @@ export async function connectMongoDb() {
     await client.connect();
     const db = await client.db("images")
     
-    console.log('Connect successfully')
+    console.log('Connect MongoDB successfully')
     return db
 
   } 
