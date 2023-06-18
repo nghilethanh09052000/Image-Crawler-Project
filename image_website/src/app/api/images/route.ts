@@ -22,9 +22,10 @@ export const GET = async (
     const totalItem = await collection.countDocuments()
     const totalPage = Math.ceil(totalItem / limit)
     const skip = ( +page - 1 )*limit
+    
 
     const thumbImages = await collection
-                              .find({})
+                              .find({}, { projection: { _id: false } } )
                               .skip(skip)
                               .limit(limit)
                               .toArray()
