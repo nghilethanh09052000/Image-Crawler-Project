@@ -3,3 +3,4 @@
 /image_crawler/download/*
 .node_modules
 download
+public
