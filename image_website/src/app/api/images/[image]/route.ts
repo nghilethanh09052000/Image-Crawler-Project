@@ -18,8 +18,7 @@ export const GET = async (
         return NextResponse.json(imageDetails , { status: 200 });
   
     } 
-    catch (error) 
-    {
+    catch (error) {
       return NextResponse.json(`Failed to fetch all images, ${error}` , { status: 200 });
     }
   };

@@ -2,15 +2,21 @@ import { connectMongoDb } from "@/utils/db";
 import { NextRequest, NextResponse } from "next/server";
 
 
+interface Query {
+  root_class? : string
+}
+
 export const GET = async (
   request: NextRequest,
 
   ) => {
 
-  try {
+  try 
+  {
     
     const page = request.nextUrl?.searchParams?.get('page') || 1
 
+    const tag  = request.nextUrl?.searchParams?.get('tag')
 
     const limit = 20;
 
@@ -18,23 +24,29 @@ export const GET = async (
     const db = await connectMongoDb();
     const collection = db.collection('Thumb');
 
+    let query: Query = {}
 
-    const totalItem = await collection.countDocuments()
+    if(tag) {
+      query.root_class = tag
+    }
+  
+
+    const totalItem = await collection.countDocuments(query)
     const totalPage = Math.ceil(totalItem / limit)
     const skip = ( +page - 1 )*limit
     
 
     const thumbImages = await collection
-                              .find({}, { projection: { _id: false } } )
+                              .find(query, { projection: { _id: false } } )
                               .skip(skip)
                               .limit(limit)
                               .toArray()
 
     const jsonResponse = {
       page: page,
-      perPage: limit,
-      totalPage: totalPage,
-      thumbImages: thumbImages
+      per_page: limit,
+      total_page: totalPage,
+      thumbnails: thumbImages
     }
 
     return NextResponse.json(jsonResponse , { status: 200 });
