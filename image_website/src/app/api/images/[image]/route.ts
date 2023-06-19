@@ -12,7 +12,7 @@ export const GET = async (
         const image = params.image
         
         const db = await connectMongoDb();
-        const collection = db.collection('metadata');
+        const collection = db.collection('Metadata');
 
         const imageDetails = await collection.findOne({image:image}, { projection: { _id: false } })
         return NextResponse.json(imageDetails , { status: 200 });
