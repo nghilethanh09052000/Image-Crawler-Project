@@ -1,5 +1,4 @@
 import scrapy
-import argparse
 import json
 from ..settings import flickr_url, flickr_api, flickr_likes, flickr_comments, flickr_views
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
@@ -237,8 +236,8 @@ class IndexSpider(scrapy.Spider):
 
         yield {
             "image"      : item['image'],                        # Specify the name of the image (we can point out the image_id and owner_id)
-            "source"     : self.init_url,                        # Specify the source
-            "page"       : item['page'],                         # Specify the url
+            "source"     : item['page'],                         # Specify the source
+            "image_url"  : item['image_urls'][0],                # Specify the url
             "exif"       : item['exif'],                         # Specify the exif of the image: make, model, lens, shutterspeed, fstop, iso, focallength
             "stat"       : item['stat'],                         # Specify the statistic based on client's requirements: downloads, views, likes comments
             "tags"       : item['tags'],                         # Specify all tags having on website of this image
@@ -254,7 +253,6 @@ class IndexSpider(scrapy.Spider):
             "crawl_id"   : 1,                                    # Generate crawl id
             "crawl_note" : "No",                                 # Generate crawl note
 
-            #"crawl_count": self.count,                          # Crawl Count Is Set Based on the Pipelines
 
             "image_urls" : item['image_urls'],                   # Field to download image
         }

@@ -21,21 +21,6 @@ from scrapy.exceptions import CloseSpider
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-class MongoDBPipeline():
-     
-    def open_spider(self, spider):
-
-        self.client = pymongo.MongoClient(MONGO_DB_URL)
-        self.db = self.client[MONGO_DB_DATABASE]
-    
-    def close_spider(self, spider):
-        self.client.close()
-
-    def process_item(self, item, spider):
-        self.db[COLLECTION_NAME].insert_one(item) # Unrem for production
-        del item['_id'] 
-        return item
- 
 
 class DownloadImagePipeline(ImagesPipeline):
 
@@ -105,6 +90,7 @@ class DownloadImagePipeline(ImagesPipeline):
             if os.path.exists(saved_image_path):
                 os.remove(image_path)
 
+            del item['image_urls']
             return item    
         
         except OSError as error:
@@ -145,4 +131,22 @@ class JsonFilePipeLine():
 
         with open(file_path, 'w', encoding="utf-8") as file:
             json.dump(item, file)
+        
         return item
+    
+
+class MongoDBPipeline():
+     
+    def open_spider(self, spider):
+
+        self.client = pymongo.MongoClient(MONGO_DB_URL)
+        self.db = self.client[MONGO_DB_DATABASE]
+    
+    def close_spider(self, spider):
+        self.client.close()
+
+    def process_item(self, item, spider):
+        self.db[COLLECTION_NAME].insert_one(item) # Unrem for production
+        del item['_id'] 
+        return item
+ 

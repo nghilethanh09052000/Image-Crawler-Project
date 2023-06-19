@@ -252,8 +252,8 @@ class PixabaySpider(scrapy.Spider):
 
         item = {
             "image"      : image,                                # Specify the name of the image (we can point out the image_id and owner_id)
-            "source"     : self.init_url,                        # Specify the source
-            "page"       : page,                                 # Specify the url
+            "source"     : page,                                 # Specify the source
+            "image_url"  : image_urls[0],                        # Specify the url
             "exif"       : exif,                                 # Specify the exif of the image: make, model, lens, shutterspeed, fstop, iso, focallength
             "stat"       : stat,                                 # Specify the statistic based on client's requirements: downloads, views, likes comments
             "tags"       : tags,                                 # Specify all tags having on website of this image

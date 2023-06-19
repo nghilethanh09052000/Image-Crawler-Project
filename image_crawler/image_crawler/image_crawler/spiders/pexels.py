@@ -251,8 +251,8 @@ class PexelsSpider(scrapy.Spider):
 
         return {
             "image"      : item['image'],                        # Specify the name of the image (we can point out the image_id and owner_id)
-            "source"     : self.init_url,                        # Specify the source
-            "page"       : item['page'],                         # Specify the url
+            "source"     : item['page'],                         # Specify the source
+            "image_url"  : item['image_urls'][0],                # Specify the url
             "exif"       : item['exif'],                         # Specify the exif of the image: make, model, lens, shutterspeed, fstop, iso, focallength
             "stat"       : item['stat'],                         # Specify the statistic based on client's requirements: downloads, views, likes comments
             "tags"       : item['tags'],                         # Specify all tags having on website of this image
