@@ -46,7 +46,7 @@ export const GET = async (
       page: page,
       per_page: limit,
       total_page: totalPage,
-      thumbnails: metadata
+      metadata: metadata
     }
 
     return NextResponse.json(jsonResponse , { status: 200 });
