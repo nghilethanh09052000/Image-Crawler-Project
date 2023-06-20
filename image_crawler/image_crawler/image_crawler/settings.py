@@ -169,9 +169,9 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
 ITEM_PIPELINES = {
-   'image_crawler.pipelines.DownloadImagePipeline': 1,
+   #'image_crawler.pipelines.DownloadImagePipeline': 1,
    'image_crawler.pipelines.JsonFilePipeLine': 2,
-   'image_crawler.pipelines.MongoDBPipeline': 3
+   #'image_crawler.pipelines.MongoDBPipeline': 3
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

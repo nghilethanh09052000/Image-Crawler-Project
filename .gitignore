@@ -2,5 +2,6 @@
 /image_crawler/download/*
 .node_modules
 download
-public
 .node_modules
+.env
+.nghi
