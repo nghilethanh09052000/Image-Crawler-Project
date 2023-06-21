@@ -24,6 +24,9 @@ export const GET = async (
     const db = await connectMongoDb();
     const collection = db.collection('Metadata');
 
+
+
+
     let query: Query = {}
 
     if(tag) {

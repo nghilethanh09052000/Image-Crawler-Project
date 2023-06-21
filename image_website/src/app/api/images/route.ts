@@ -45,7 +45,8 @@ export const GET = async (
     const jsonResponse = {
       page: page,
       per_page: limit,
-      total_page: totalPage,
+      total_items: totalItem,
+      total_pages: totalPage,
       thumbnails: thumbImages
     }
 
