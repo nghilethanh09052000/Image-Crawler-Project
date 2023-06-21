@@ -19,7 +19,7 @@ export const updateSearchParams = (key: string, value: string) => {
 
 export async function getImageThumbs(filters: FilterProps): Promise<ApiResponse> {
     const {page} = filters
-    const res = await axios.get<ApiResponse>(`http://localhost:3000/api/images?page=${page}`);
+    const res = await axios.get<ApiResponse>(`${process.env.API_URL}/api/images?page=${page}`);
     if (res.status !== 200) throw new Error("Error Connection");
     return res.data;
   }
