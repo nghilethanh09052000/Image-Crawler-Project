@@ -15,8 +15,8 @@ export const GET = async (
   {
     
     const page = request.nextUrl?.searchParams?.get('page') || 1
-
-    const tag  = request.nextUrl?.searchParams?.get('tag')
+    const tag = request.nextUrl?.searchParams?.get('tag')
+   
 
     const limit = 20;
 

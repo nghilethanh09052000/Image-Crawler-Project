@@ -1,5 +1,12 @@
+
+
 export interface FilterProps {
-  page: number
+  page?: number;
+  title?: string;
+  tag?: string;
+  orderBy?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 

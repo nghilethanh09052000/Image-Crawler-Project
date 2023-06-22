@@ -11,9 +11,6 @@ import {
 
 
 
-
-
-
 class API {
 
     private baseURL: string 
@@ -79,6 +76,22 @@ class API {
         return this.Request('get', `/api/images/${imageName}`);
     };
 
+    public getMetadata = async (filters: FilterProps): Promise<ImageDetailsResponse> => 
+    {
+      const { 
+        page,
+        title,
+        tag,
+        orderBy,
+        startDate,
+        endDate
+      } = filters;
+
+        return this.Request(
+          'get', 
+          `/api/metadata?title=${title}&tag=${tag}&page=${page}&orderBy=${orderBy}&startDate=${startDate}&endDate=${endDate}`
+        );
+    };
 
 }
 
