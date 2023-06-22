@@ -2,22 +2,16 @@
 
 
 import { useState, ChangeEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/utils/api';
 
 const SearchBar = () => {
+  const router = useRouter()
 
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleSumit = async () => {
-    try 
-    {
-      const data = await api.getMetadata({title: searchTerm});
-    } 
-    catch (error) 
-    {
-      // Handle the error
-      console.error(error);
-    }
+    router.push(`images/search?title=${searchTerm}`)
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {

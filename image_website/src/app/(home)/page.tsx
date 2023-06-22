@@ -1,8 +1,6 @@
-import NavBar from '@/components/Navbar/Navbar'
 import ImageCardWrapper from '@/components/ImageCard/ImageCard'
 import Pagination from '@/components/Pagination/Pagination'
 import { FilterProps } from "@/types";
-import CircleLoading from '@/components/CircleLoading/CircleLoading';
 import api from '@/utils/api';
 
 
@@ -14,10 +12,10 @@ export interface HomeProps {
 
 export default async function Home({searchParams}: HomeProps) {
 
-  const {page } = searchParams
+  const {page} = searchParams
 
   const data = await api.getImageThumbs({
-    page: page || 1
+    page: page 
   })
 
   const {

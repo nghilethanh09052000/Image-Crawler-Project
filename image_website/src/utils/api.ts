@@ -5,7 +5,8 @@ import {
     FilterProps, 
     ApiResponse,
     ImageThumbsResponse,
-    ImageDetailsResponse
+    ImageDetailsResponse,
+    ImageMetaDataResponse
 } from "@/types";
 
 
@@ -26,7 +27,7 @@ class API {
     }
 
     private PostProcessing = <T>(res: AxiosResponse<ApiResponse<T>>): T | Promise<never> | undefined => 
-        {
+    {
         if (res.status < 200 || res.status >= 300) 
         {
           return Promise.reject({
@@ -65,10 +66,21 @@ class API {
 
     public getImageThumbs = async (filters: FilterProps): Promise<ImageThumbsResponse> => 
     {
+      
         const { 
-            page 
+          page = 1,
+          title = '',
+          tag = '',
+          orderBy = '',
+          startDate = '',
+          endDate = ''
         } = filters;
-        return this.Request('get', `${this.baseURL}/api/images?page=${page}`);
+  
+  
+        return this.Request(
+          'get', 
+          `${this.baseURL}/api/images?title=${title}&tag=${tag}&page=${page}&orderBy=${orderBy}&startDate=${startDate}&endDate=${endDate}`
+        );
     };
 
     public getImageDetails = async (imageName: string): Promise<ImageDetailsResponse> => 
@@ -76,23 +88,7 @@ class API {
         return this.Request('get', `/api/images/${imageName}`);
     };
 
-    public getMetadata = async (filters: FilterProps): Promise<ImageDetailsResponse> => 
-    {
-      const { 
-        page,
-        title,
-        tag,
-        orderBy,
-        startDate,
-        endDate
-      } = filters;
-
-        return this.Request(
-          'get', 
-          `/api/metadata?title=${title}&tag=${tag}&page=${page}&orderBy=${orderBy}&startDate=${startDate}&endDate=${endDate}`
-        );
-    };
-
+  
 }
 
 export default new API();

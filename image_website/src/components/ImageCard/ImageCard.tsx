@@ -80,7 +80,6 @@ const ImageCardWrapper = ({ thumbnails }: GalleryProps) => {
 
   const closeModal = () => {
     document.title = "Images Gallery";
-    console.log('Nghi')
     setDialogOpen(false);
     window.history.replaceState({ path: '/' }, '', '/');
   };
