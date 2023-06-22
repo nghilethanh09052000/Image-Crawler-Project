@@ -1,7 +1,8 @@
 import '../globals.css'
 import NavBar from '@/components/Navbar/Navbar';
-
 import { Inter } from 'next/font/google'
+import { AppContextProvider } from '@/context/Context';
+import CircleLoading from '@/components/CircleLoading/CircleLoading';
 
 
 const inter = Inter({ subsets: ['latin'] })
@@ -20,8 +21,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning={true} >
-        <NavBar/>
-        {children}
+        <AppContextProvider>
+          <NavBar/>
+          <CircleLoading/>
+          {children}
+        </AppContextProvider>
       </body>
     </html>
   )

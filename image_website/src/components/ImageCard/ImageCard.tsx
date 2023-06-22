@@ -2,16 +2,19 @@
 
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
-import { getImageDetails } from "@/utils/utils";
-import ModalDialog from "../ModalDialog/ModalDialog";
-import CircleLoading from "../CircleLoading/CircleLoading";
+import { useState, useContext } from "react";
+import ImageDetails from "../ImageDetails/ImageDetails";
+import api from "@/utils/api";
+import { 
+  Thumbnail,
+  ImageDetailsResponse 
+} from "@/types";
 
-interface Thumbnail {
-  root_class: string;
-  image: string;
-  thumbnail_url: string;
-}
+import { 
+  AppContext, 
+  setLoading 
+} from "@/context/Context";
+import ModalDialog from "../ModalDialog/ModalDialog";
 
 interface GalleryProps {
   thumbnails: Thumbnail[];
@@ -19,45 +22,39 @@ interface GalleryProps {
 
 const ImageCardWrapper = ({ thumbnails }: GalleryProps) => {
 
-  const [isLoading, setIsLoading] = useState(false)
+  const {dispatch} = useContext(AppContext)
+
   const [selectedImage, setSeletedImage] = useState('')
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const [imageDetails, setImageDetails] = useState(null);
+  const [imageDetails, setImageDetails] = useState<ImageDetailsResponse | null>(null);
 
   const handleImageClick = async (imageName: string, imageUrl: string) => {
-
-    setIsLoading(true)
-
-    updateURL(imageName);
-
-    const imageDetail = await getImageDetails(imageName);
-
-    if (imageDetail) {
-      
-    setImageDetails(imageDetail);
-
-    setSeletedImage(imageUrl)
-
-    openModal(imageName);
-    setIsLoading(false)
     
-    }
+    setLoading(dispatch, true)
+
+    const getImageDetails = await fetchImageDetails(imageName);
+    
+    if(!getImageDetails) return
+    
+    updateURL(imageName);
+    setImageDetails(getImageDetails);
+    setSeletedImage(imageUrl)
+    openModal(imageName);
+
+
+    setLoading(dispatch, false)
 
   };
 
-  useEffect(() => {
-    if (window.location.pathname !== "/") {
-      const imageName = window.location.pathname.split("/images/")[1];
-      fetchImageDetails(imageName);
-      openModal(imageName);
-    }
-  }, []);
 
   const fetchImageDetails = async (imageName: string) => {
-    try {
-      const imageDetail = await getImageDetails(imageName);
-      setImageDetails(imageDetail);
-    } catch (error) {
+    try 
+    {
+      const getImageDetails = await api.getImageDetails(imageName);
+      return getImageDetails
+    } 
+    catch (error) 
+    {
       console.error("Error fetching image details:", error);
     }
   };
@@ -83,12 +80,14 @@ const ImageCardWrapper = ({ thumbnails }: GalleryProps) => {
 
   const closeModal = () => {
     document.title = "Images Gallery";
+    console.log('Nghi')
     setDialogOpen(false);
-
     window.history.replaceState({ path: '/' }, '', '/');
   };
 
-  return (
+ 
+
+  return (  
     <div className="-m-1 flex flex-wrap md:-m-2">
       {thumbnails.map((thumbnail) => (
         <div className="flex lg:basis-1/4 sm:basis-1/2 flex-wrap" key={thumbnail.image}>
@@ -104,15 +103,22 @@ const ImageCardWrapper = ({ thumbnails }: GalleryProps) => {
           </div>
         </div>
       ))}
-      { isLoading && <CircleLoading/> }
       {
-        isDialogOpen && 
-          <ModalDialog 
-            selectedImage={selectedImage} 
-            imageDetails={imageDetails} 
+        isDialogOpen 
+        && imageDetails
+        && (
+          <ModalDialog
             isDialogOpen={isDialogOpen} 
             closeModal={closeModal} 
-          />
+            title={imageDetails.image}
+          >
+              <ImageDetails 
+              selectedImage={selectedImage} 
+              imageDetails={imageDetails} 
+            />
+          </ModalDialog>
+        )
+         
       }
     </div>
   );

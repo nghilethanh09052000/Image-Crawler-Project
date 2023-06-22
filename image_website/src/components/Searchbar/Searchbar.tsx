@@ -1,4 +1,29 @@
+'use client'
+
+
+import { useState, ChangeEvent } from 'react';
+import api from '@/utils/api';
+
 const SearchBar = () => {
+
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSumit = async () => {
+    try 
+    {
+      const data = await api.getMetadata({title: searchTerm});
+    } 
+    catch (error) 
+    {
+      // Handle the error
+      console.error(error);
+    }
+  };
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
   return (
     <div className="relative w-full">
       <input
@@ -16,6 +41,8 @@ const SearchBar = () => {
             dark:placeholder-white-400 dark:text-black
         "
         placeholder="Search for Images...."
+        value={searchTerm}
+        onChange={handleChange}
         required
       />
       <button
@@ -30,6 +57,7 @@ const SearchBar = () => {
             text-white 
             bg-indigo-700 
             rounded-r-lg border border-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:focus:ring-indigo-800"
+        onClick={handleSumit}
       >
         <svg
           aria-hidden="true"
