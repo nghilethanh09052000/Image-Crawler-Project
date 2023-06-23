@@ -5,7 +5,10 @@ import React, { Dispatch, createContext, useReducer } from "react";
 
 type StateType = {
   loading: boolean;
-  error: boolean;
+  error: {
+    isError: boolean,
+    message: string
+  };
 };
 
 type ActionType = {
@@ -15,7 +18,10 @@ type ActionType = {
 
 const initialState: StateType = {
   loading: false,
-  error: false,
+  error: {
+    isError: false,
+    message: ''
+  },
 };
 
 const reducer = (
@@ -31,7 +37,7 @@ const reducer = (
         case "ERROR":
         return {
             ...state,
-            error: action.value 
+            error: action.value
         };
         default:
         return state;
@@ -67,6 +73,6 @@ export const setLoading = (
 
 export const setError = (
     dispatch: Dispatch<ActionType>, // Add type annotation for dispatch
-    value: boolean // Add type annotation for value
-) => dispatch({ type: "Error", value });
+    value:  { isError: boolean; message: string } // Add type annotation for value
+) => dispatch({ type: "ERROR", value });
 

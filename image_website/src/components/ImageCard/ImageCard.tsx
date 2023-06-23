@@ -12,6 +12,7 @@ import {
 
 import { 
   AppContext, 
+  setError, 
   setLoading 
 } from "@/context/Context";
 import ModalDialog from "../ModalDialog/ModalDialog";
@@ -22,7 +23,11 @@ interface GalleryProps {
 
 const ImageCardWrapper = ({ thumbnails }: GalleryProps) => {
 
-  const {dispatch} = useContext(AppContext)
+
+  const {state, dispatch} = useContext(AppContext)
+  const {
+    error
+  } = state
 
   const [selectedImage, setSeletedImage] = useState('')
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -40,8 +45,6 @@ const ImageCardWrapper = ({ thumbnails }: GalleryProps) => {
     setImageDetails(getImageDetails);
     setSeletedImage(imageUrl)
     openModal(imageName);
-
-
     setLoading(dispatch, false)
 
   };
@@ -53,17 +56,18 @@ const ImageCardWrapper = ({ thumbnails }: GalleryProps) => {
       const getImageDetails = await api.getImageDetails(imageName);
       return getImageDetails
     } 
-    catch (error) 
+    catch (err:any) 
     {
-      console.error("Error fetching image details:", error);
+      setError(dispatch, {...error, isError: true, message: `Error fetching image details:, ${err.message}` })
+      setLoading(dispatch, false)
     }
   };
 
   const updateURL = (imageName: string) => {
     const currentURL = window.location.href;
-    const imagesSegment = "images/";
-    const regex = new RegExp(`${imagesSegment}[^/]*`);
-  
+    const imagesSegment = "/images/";
+    const regex = new RegExp(`${imagesSegment}[^/]*$`);
+
     if (regex.test(currentURL)) {
       const newURL = currentURL.replace(regex, `${imagesSegment}${imageName}`);
       window.history.replaceState({ path: newURL }, "", newURL);
@@ -81,7 +85,11 @@ const ImageCardWrapper = ({ thumbnails }: GalleryProps) => {
   const closeModal = () => {
     document.title = "Images Gallery";
     setDialogOpen(false);
-    window.history.replaceState({ path: '/' }, '', '/');
+    const currentURL = window.location.href;
+    const imagesSegment = "/images/";
+    const regex = new RegExp(`${imagesSegment}[^/]*$`);
+    const newURL = currentURL.replace(regex, "");
+    window.history.replaceState({ path: newURL }, "", newURL);
   };
 
  

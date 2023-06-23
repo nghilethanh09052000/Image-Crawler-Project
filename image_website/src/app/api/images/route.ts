@@ -6,6 +6,8 @@ interface Query {
   root_class?: string;
   title?: { $regex: string; $options: string };
   uploaded?: { $gte: string; $lte: string };
+  "exif.make"?: string;
+  "exif.model"? : string;
 }
 
 interface SortOptions {
@@ -21,6 +23,8 @@ export const GET = async (request: NextRequest) => {
 
     const tag = request.nextUrl?.searchParams?.get('tag');
     const title = request.nextUrl?.searchParams?.get('title');
+    const exifMake = request.nextUrl?.searchParams?.get("exifMake");
+    const exifModel = request.nextUrl?.searchParams?.get("exifModel");
     const orderBy = request.nextUrl?.searchParams?.get('orderBy');
     const startDateParam = request.nextUrl?.searchParams?.get('startDate');
     const endDateParam = request.nextUrl?.searchParams?.get('endDate');
@@ -31,13 +35,17 @@ export const GET = async (request: NextRequest) => {
 
     let query: Query = {};
 
-    if (tag) {
-      query.root_class = tag;
-    }
+    if (tag) query.root_class = tag;
+    
 
-    if (title) {
-      query.title = { $regex: title, $options: 'i' };
-    }
+    if (title) query.title = { $regex: title, $options: 'i' };
+    
+
+    if (exifMake) query["exif.make"] = exifMake;
+    
+
+    if (exifModel) query["exif.model"] = exifModel;
+    
 
     if (startDateParam && endDateParam) {
       query.uploaded = {

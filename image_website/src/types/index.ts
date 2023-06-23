@@ -4,6 +4,8 @@ export interface FilterProps {
   page?: number;
   title?: string;
   tag?: string;
+  exifMake?: string;
+  exifModel?: string;
   orderBy?: string;
   startDate?: string;
   endDate?: string;
@@ -82,6 +84,8 @@ export interface ImageMetaDataResponse {
   total_pages: number;
   metadata: ImageDetailsResponse[];
 }
+
+
 
 export interface ApiResponse<T> {
   code: number;

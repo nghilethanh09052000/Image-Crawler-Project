@@ -5,6 +5,7 @@ import { useContext } from "react";
 import { AppContext } from "@/context/Context";
 
 const CircleLoading = () => {
+  
   const { state } = useContext(AppContext);
   const { loading } = state;
 
