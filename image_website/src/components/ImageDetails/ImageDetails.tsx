@@ -22,8 +22,8 @@ const ImageDetails = ({
 
                 <div className="px-5 py-3">
 
-                    <div className="lg:flex lg:space-between items-center mb-3 ">
-                        <div className="rounded sm:flex sm:items-center sm:justify-center">
+                    <div className="lg:flex lg:justify-between items-center justify-center mb-3 ">
+                        <div className="rounded lg:block flex items-center justify-center mb-3">
                             <Image
                                 src={selectedImage}
                                 alt={selectedImage}
@@ -35,21 +35,20 @@ const ImageDetails = ({
                             />
                         </div>
 
-                        <div className="text-white font-serif sm:mt-7 lg:ml-5">
-                            
-                            <div>
+                        <div className="flex items-center justify-center">
+                            <div className="text-white font-serif sm:mt-7 lg:ml-5">
+                                <div className="mx-auto w-6/12">
                                 <h2 className="font-serif text-center lg:text-xl sm:text-base mb-5">
                                     {imageDetails.title}
                                 </h2>
-                            </div>
-                            
-                            <p className="font-sans text-center">
+                                </div>
+                                <p className="font-sans text-center">
                                 Published on {imageDetails.uploaded}
-                            </p>
-
-                            <p className="font-sans mt-3 text-sm text-center underline">
+                                </p>
+                                <p className="font-sans mt-3 text-sm text-center underline">
                                 Owner: {imageDetails.owner}
-                            </p>
+                                </p>
+                            </div>
                         </div>
                     </div>
 

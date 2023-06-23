@@ -71,6 +71,8 @@ class API {
           page = 1,
           title = '',
           tag = '',
+          exifMake='',
+          exifModel='',
           orderBy = '',
           startDate = '',
           endDate = ''
@@ -79,13 +81,29 @@ class API {
   
         return this.Request(
           'get', 
-          `${this.baseURL}/api/images?title=${title}&tag=${tag}&page=${page}&orderBy=${orderBy}&startDate=${startDate}&endDate=${endDate}`
+          `${this.baseURL}/api/images?title=${title}&tag=${tag}&page=${page}&exifMake=${exifMake}&exifMode=${exifModel}&orderBy=${orderBy}&startDate=${startDate}&endDate=${endDate}`
         );
     };
 
     public getImageDetails = async (imageName: string): Promise<ImageDetailsResponse> => 
     {
         return this.Request('get', `/api/images/${imageName}`);
+    };
+
+    public getImageTag = async (): Promise<ImageDetailsResponse> => 
+    {
+        return this.Request('get', `/api/features/tag`);
+    };
+
+    public getExifMake = async (inputField: string): Promise<string[]> => 
+    {
+      return this.Request('get', `/api/features/exif/make?search=${inputField}`);
+      
+    };
+
+    public getExifModel = async (inputField: string): Promise<string[]> => 
+    {
+      return this.Request('get', `/api/features/exif/model?search=${inputField}`);   
     };
 
   

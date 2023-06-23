@@ -1,22 +1,37 @@
 'use client'
 
 
-import { useState, ChangeEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import api from '@/utils/api';
+import { useState, useEffect, ChangeEvent, useContext } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { AppContext, setLoading } from '@/context/Context';
+
 
 const SearchBar = () => {
+
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const title = searchParams.get('title')
+
+  const {dispatch} = useContext(AppContext)
 
   const [searchTerm, setSearchTerm] = useState('');
 
+  useEffect(() => {
+    setLoading(dispatch, false);
+  }, [title]);
+
+
+
   const handleSumit = async () => {
-    router.push(`images/search?title=${searchTerm}`)
+    setLoading(dispatch,true)
+    router.push(`/?title=${searchTerm}`)
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    
     setSearchTerm(event.target.value);
   };
+  
 
   return (
     <div className="relative w-full">
