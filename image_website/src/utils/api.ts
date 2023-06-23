@@ -6,7 +6,8 @@ import {
     ApiResponse,
     ImageThumbsResponse,
     ImageDetailsResponse,
-    ImageMetaDataResponse
+    ImageMetaDataResponse,
+    ImageTag
 } from "@/types";
 
 
@@ -90,7 +91,7 @@ class API {
         return this.Request('get', `/api/images/${imageName}`);
     };
 
-    public getImageTag = async (): Promise<ImageDetailsResponse> => 
+    public getImageTag = async (): Promise<ImageTag> => 
     {
         return this.Request('get', `/api/features/tag`);
     };

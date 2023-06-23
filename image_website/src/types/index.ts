@@ -85,6 +85,9 @@ export interface ImageMetaDataResponse {
   metadata: ImageDetailsResponse[];
 }
 
+export interface ImageTag {
+  tag: string[]
+}
 
 
 export interface ApiResponse<T> {
