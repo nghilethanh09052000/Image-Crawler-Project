@@ -74,6 +74,15 @@ export interface ImageDetailsResponse {
   crawl_count: number
 }
 
+export interface ImageMetaDataResponse {
+
+  page: number;
+  per_page: number;
+  total_items: number;
+  total_pages: number;
+  metadata: ImageDetailsResponse[];
+}
+
 export interface ApiResponse<T> {
   code: number;
   title: string;
