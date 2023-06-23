@@ -12,10 +12,15 @@ export interface HomeProps {
 
 export default async function Home({searchParams}: HomeProps) {
 
-  const {page} = searchParams
+  const {page, title, tag, orderBy, startDate, endDate} = searchParams
 
   const data = await api.getImageThumbs({
-    page: page 
+    page: page ,
+    title: title ,
+    tag : tag ,
+    orderBy : orderBy,
+    startDate : startDate ,
+    endDate : endDate ,
   })
 
   const {
@@ -25,26 +30,24 @@ export default async function Home({searchParams}: HomeProps) {
     total_pages
   } = data
 
-
   return (
-      <main className='overflow-hidden'>
+    <main className='overflow-hidden'>
 
-          <div className="container mx-auto px-5 py-2 lg:px-32 lg:pt-12">
+    <div className="container mx-auto px-5 py-2 lg:px-32 lg:pt-12">
 
-            
-            <ImageCardWrapper  
-              thumbnails={thumbnails || []}
-            />
+      <ImageCardWrapper  
+          thumbnails={thumbnails || []}
+        />
 
-            <Pagination
-              page={page || 1}
-              totalPages={total_pages}
-              totalItems={total_items}
-              perPage={per_page}
-              isNext={thumbnails.length > 0}
-            />
+        <Pagination
+          page={page || 1}
+          totalPages={total_pages}
+          totalItems={total_items}
+          perPage={per_page}
+          isNext={thumbnails.length > 0}
+        />
 
-          </div>
-      </main>
+    </div>
+</main>
   )
 }

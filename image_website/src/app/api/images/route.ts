@@ -14,6 +14,7 @@ interface SortOptions {
 
 export const GET = async (request: NextRequest) => {
   try {
+    
     const page = request.nextUrl?.searchParams?.get('page') || '1';
     const limit = 20;
     const skip = (parseInt(page, 10) - 1) * limit;
@@ -47,36 +48,24 @@ export const GET = async (request: NextRequest) => {
 
     const sortOptions: SortOptions = {};
 
-    if (orderBy === 'views') {
-      sortOptions['stat.views'] = -1;
-    } else if (orderBy === 'likes') {
-      sortOptions['stat.likes'] = -1;
-    } else if (orderBy === 'comments') {
-      sortOptions['stat.comments'] = -1;
-    }
+    if (orderBy === 'views') sortOptions['stat.views'] = -1;
+    if (orderBy === 'likes') sortOptions['stat.likes'] = -1;
+    if (orderBy === 'comments') sortOptions['stat.comments'] = -1;
+  
 
     let totalItem;
     let metadata;
     let imageNames;
+    let thumbnails;
 
     if (Object.keys(query).length === 0) 
     {
       totalItem = await thumbCollection.countDocuments();
-      const thumbnails = await thumbCollection
+      thumbnails = await thumbCollection
         .find({}, { projection: { _id: false } } )
         .skip(skip)
         .limit(limit)
         .toArray();
-
-      const jsonResponse = {
-          page: page,
-          per_page: limit,
-          total_items: totalItem,
-          total_pages: Math.ceil(totalItem / limit),
-          thumbnails: thumbnails,
-      };
-    
-      return NextResponse.json(jsonResponse, { status: 200 });
     } 
     else 
     {
@@ -88,24 +77,23 @@ export const GET = async (request: NextRequest) => {
 
       imageNames = metadata.map((item: ImageDetailsResponse) => item.image);
 
-      const thumbnails = await thumbCollection
-        .find({ image: { $in: imageNames } })
+      thumbnails = await thumbCollection
+        .find({ image: { $in: imageNames } }, { projection: { _id: false } })
         .skip(skip)
         .limit(limit)
         .toArray();
         
-  
-      const jsonResponse = {
-        page: page,
-        per_page: limit,
-        total_items: totalItem,
-        total_pages: Math.ceil(totalItem / limit),
-        thumbnails: thumbnails,
-      };
-  
-      return NextResponse.json(jsonResponse, { status: 200 });
     }
 
+    const jsonResponse = {
+      page: page,
+      per_page: limit,
+      total_items: totalItem,
+      total_pages: Math.ceil(totalItem / limit),
+      thumbnails: thumbnails,
+  };
+
+  return NextResponse.json(jsonResponse, { status: 200 });
    
     
   } catch (error) {
