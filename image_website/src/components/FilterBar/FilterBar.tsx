@@ -1,19 +1,56 @@
 "use client";
-import { useState, useEffect, useContext } from "react";
+
+import { useState, useEffect, useContext, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Disclosure } from "@headlessui/react";
 import { ChevronUpIcon } from "@heroicons/react/20/solid";
 import { AppContext,setLoading } from "@/context/Context";
 import api from "@/utils/api";
+import { debounce } from "lodash";
 import { updateSearchParams } from "@/utils/utils";
-import { 
-  Autocomplete, 
-  TextField,
-} from "@mui/material";
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { Autocomplete, TextField } from "@mui/material";
+
+
+
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DatePicker } from '@mui/x-date-pickers';
+
+
+
+
+enum SortByOptions {
+  Views = 'Views',
+  Likes = 'Likes',
+  Downloads = 'Downloads',
+  Comments = 'Comments',
+}
+
+interface FilterData {
+  tagData: string;
+  sortByData: SortByOptions | '';
+  makeData: string;
+  modelData: string;
+  startDateData: string;
+  endDateData: string;
+}
+
+const sortByList: (SortByOptions | '')[] = [
+  SortByOptions.Views,
+  SortByOptions.Likes,
+  SortByOptions.Downloads,
+  SortByOptions.Comments,
+];
+
+const data: FilterData = {
+  tagData: '',
+  sortByData: '',
+  makeData: '',
+  modelData: '',
+  startDateData: '',
+  endDateData: '',
+};
+
 
 
 const FilterBar = () => {
@@ -23,7 +60,19 @@ const FilterBar = () => {
   const {dispatch} = useContext(AppContext)
   const [openFilter, setOpenFilter] = useState<boolean>(false);
 
-  const [tags, setTags] = useState<string[]>([]);
+  // For Array Option of Autocomplete
+  const [tagOptions, setTagOptions] = useState<string[]>([]);
+  const [makeOptions, setMakeOption] = useState<string[]>([])
+  const [modelOptions, setModelOption] = useState<string[]>([])
+
+   // Memoized options arrays for Autocomplete components
+   const memoizedTagOptions = useMemo(() => tagOptions, [tagOptions]);
+   const memoizedMakeOptions = useMemo(() => makeOptions, [makeOptions]);
+   const memoizedModelOptions = useMemo(() => modelOptions, [modelOptions]);
+
+
+  // For each data variables:
+  const [filterData, setFilterData] = useState(data)
 
   useEffect(() => {
     setLoading(dispatch, false);
@@ -32,11 +81,12 @@ const FilterBar = () => {
 
   useEffect(() => {
     const fetchTags = async () => {
+
       try {
         
         const getTags = await api.getImageTag();
         const { tag } = getTags
-        setTags(tag);
+        setTagOptions(tag);
       } catch (err) {
         console.log('Failed To Fetch Tags');
       }
@@ -57,16 +107,65 @@ const FilterBar = () => {
     setOpenFilter(!openFilter);
   };
 
-  const renderFilterTag = () => {
-  
+  const handleChangeAction = useCallback(
+    (e: React.SyntheticEvent, value: string | null, name: string) => {
+      if (!value) return;
+      setFilterData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    },
+    []
+  );
+
+  const handleMakeInputChange = useCallback(
+    debounce(async (inputValue: string) =>{
+      try 
+      {
+        const exifMakeData = await api.getExifMake(inputValue)
+
+        const {
+          makeGroups
+        } = exifMakeData
+
+        setMakeOption(makeGroups)
+      }
+      catch(err)
+      {
+        console.log("Error failed to fetch make option", err)
+      }
+    }, 300),
+    []
+  )
+
+  const handleModelInputChange = useCallback(
+    debounce(async (inputValue: string) =>{
+      try 
+      {
+        const exifModelData = await api.getExifModel(inputValue)
+
+        const {
+          modelGroups
+        } = exifModelData
+
+        setModelOption(modelGroups)
+      }
+      catch(err)
+      {
+        console.log("Error failed to fetch make option", err)
+      }
+    }, 300),
+    []
+  )
+
+  const renderFilterTag = useMemo(() => {
     return (
       <Autocomplete
-        disablePortal
-        id="combo-box-demo"
-        options={tags}
-        sx={{}}
+        value={filterData.tagData}
+        options={memoizedTagOptions}
         renderInput={(params) => <TextField {...params} label="Find By Tags" />}
-        //onChange={(e,value)=> handleFilterTagChange(e, value) }
+        onChange={(e, value) => handleChangeAction(e, value, 'tagData')}
+        isOptionEqualToValue={(option, value) => value === '' || option === value}
         renderOption={(props, option) => {
           return (
             <li {...props} key={option}>
@@ -75,89 +174,87 @@ const FilterBar = () => {
           );
         }}
       />
-    )
-  };
+    );
+  }, [filterData.tagData, memoizedTagOptions]);
+
+  const renderSortBy = useMemo(() => {
+    return (
+      <Autocomplete
+        value={filterData.sortByData}
+        options={sortByList}
+        renderInput={(params) => <TextField {...params} label="Sort By" />}
+        isOptionEqualToValue={(option, value) => value === '' || option === value}
+        onChange={(e, value) => handleChangeAction(e, value, 'sortByData')}
+        renderOption={(props, option) => {
+          return (
+            <li {...props} key={option}>
+              {option}
+            </li>
+          );
+        }}
+      />
+    );
+  }, [filterData.sortByData]);
+  
+  const renderExifMake = useCallback(() => {
+    return (
+      <Autocomplete
+        value={filterData.makeData}
+        options={memoizedMakeOptions}
+        renderInput={(params) => <TextField {...params} label="Camera Make" />}
+        onChange={(e, value) => handleChangeAction(e, value, 'makeData')}
+        onInputChange={(e, value) => handleMakeInputChange(value)}
+        isOptionEqualToValue={(option, value) => value === '' || option === value}
+        renderOption={(props, option) => {
+          return (
+            <li {...props} key={option}>
+              {option}
+            </li>
+          );
+        }}
+      />
+    );
+  }, [filterData.makeData, memoizedMakeOptions]);
+  
+  const renderExifModel = useCallback(() => {
+    return (
+      <Autocomplete
+        value={filterData.modelData}
+        options={memoizedModelOptions}
+        renderInput={(params) => <TextField {...params} label="Camera Model" />}
+        onChange={(e, value) => handleChangeAction(e, value, 'modelData')}
+        onInputChange={(e, value) => handleModelInputChange(value)}
+        isOptionEqualToValue={(option, value) => value === '' || option === value}
+        renderOption={(props, option) => {
+          return (
+            <li {...props} key={option}>
+              {option}
+            </li>
+          );
+        }}
+      />
+    );
+  }, [filterData.modelData, memoizedModelOptions]);
 
   const renderStartEndDate = () => {
     return (
       <LocalizationProvider 
         dateAdapter={AdapterDayjs}
       >
-        <DemoContainer 
-          components={['DatePicker']}
-        >
+        <div className="flex justify-center items-center">
           <DatePicker 
-            label="Select Start Date" 
+            label="Start Date" 
           />
+          <p className="mx-3">to</p>
           <DatePicker 
-            label="Select End Date" 
+            label="End Date" 
           />
-        </DemoContainer>
+        </div>
     </LocalizationProvider>
     )
   };
-
-  const renderSortBy = () => {
-    return (
-      <Autocomplete
-      disablePortal
-      id="combo-box-demo"
-      options={tags}
-      sx={{}}
-      renderInput={(params) => <TextField {...params} label="Sort By"/>}
-      //onChange={(e,value)=> handleSumitFilter(e, value) }
-      renderOption={(props, option) => {
-        return (
-          <li {...props} key={option}>
-            {option}
-          </li>
-        );
-      }}
-    />
-    )
-  };
   
-  const renderExifMake = () => {
-    return (
-      <Autocomplete
-      disablePortal
-      id="combo-box-demo"
-      options={tags}
-      sx={{ }}
-      renderInput={(params) => <TextField {...params} label="Camera Make" />}
-      //onChange={(e,value)=> handleSumitFilter(e, value) }
-      renderOption={(props, option) => {
-        return (
-          <li {...props} key={option}>
-            {option}
-          </li>
-        );
-      }}
-    />
-    )
-  };
-  
-  const renderExifModel = () => {
-    return (
-      <Autocomplete
-      disablePortal
-      id="combo-box-demo"
-      options={tags}
-      sx={{  }}
-      renderInput={(params) => <TextField {...params} label="Camera Model" />}
-      //onChange={(e,value)=> handleSumitFilter(e, value) }
-      renderOption={(props, option) => {
-        return (
-          <li {...props} key={option}>
-            {option}
-          </li>
-        );
-      }}
-    />
-    )
-  };
-  
-
+  console.log('Nghi', filterData)
 
   return (
     <>
@@ -186,15 +283,34 @@ const FilterBar = () => {
       openFilter
       && 
       (
-        <div className="grid grid-rows-2 gap-4">
-          <div className="grid grid-cols-3 gap-6">
-              {renderFilterTag()}
-              {renderStartEndDate()}
-              {renderSortBy()}
+        <div className="grid grid-rows-4 gap-4 mb-12">
+          <div className="grid lg:grid-cols-2 sm:grid-cols-1 gap-6">
+              {renderFilterTag}
+              {renderSortBy}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid lg:grid-cols-2 sm:grid-cols-1 gap-6 ">
             {renderExifMake()}
             {renderExifModel()}
+          </div>
+
+          <div className="grid grid-rows-1">
+            {renderStartEndDate()}
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+
+            <button 
+              className="rounded-none border border-indigo-500 text-white bg-black"
+              >
+                Apply
+              </button>
+
+            <button 
+              className="rounded-none border border-indigo-500 text-black bg-white"
+            >
+              Clear Filter
+            </button>
+
           </div>
          
         </div>
