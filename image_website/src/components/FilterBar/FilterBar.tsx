@@ -82,19 +82,28 @@ const FilterBar = () => {
 
 
   useEffect(() => {
-    const fetchTags = async () => {
-
+    const fetchOptionData = async () => {
       try {
         
         const getTags = await api.getImageTag();
+        const getExifMake = await api.getExifMake()
+        const getExifModel = await api.getExifModel()
+
         const { tag } = getTags
+        const {makeGroups} = getExifMake
+        const {modelGroups} = getExifModel
+
         setTagOptions(tag);
+        setMakeOption(makeGroups);
+        setModelOption(modelGroups)
+
       } catch (err) {
         console.log('Failed To Fetch Tags');
       }
     };
 
-    fetchTags();
+    fetchOptionData();
+
   }, []);
 
 
@@ -116,46 +125,6 @@ const FilterBar = () => {
     },
     []
   );
-
-  const handleMakeInputChange = useCallback(
-    debounce(async (inputValue: string) =>{
-      try 
-      {
-        const exifMakeData = await api.getExifMake(inputValue)
-
-        const {
-          makeGroups
-        } = exifMakeData
-
-        setMakeOption(makeGroups)
-      }
-      catch(err)
-      {
-        console.log("Error failed to fetch make option", err)
-      }
-    }, 300),
-    []
-  )
-
-  const handleModelInputChange = useCallback(
-    debounce(async (inputValue: string) =>{
-      try 
-      {
-        const exifModelData = await api.getExifModel(inputValue)
-
-        const {
-          modelGroups
-        } = exifModelData
-
-        setModelOption(modelGroups)
-      }
-      catch(err)
-      {
-        console.log("Error failed to fetch make option", err)
-      }
-    }, 300),
-    []
-  )
 
   const renderFilterTag = useMemo(() => {
     return (
@@ -200,10 +169,8 @@ const FilterBar = () => {
       <Autocomplete
         value={filterData.exifMake}
         options={memoizedMakeOptions}
-        loading={memoizedMakeOptions.length == 0}
         renderInput={(params) => <TextField {...params} label="Camera Make" />}
         onChange={(e, value) => handleChangeAction(e, value, 'exifMake')}
-        onInputChange={(e, value) => handleMakeInputChange(value)}
         isOptionEqualToValue={(option, value) => value === '' || option === value}
         renderOption={(props, option) => {
           return (
@@ -221,10 +188,8 @@ const FilterBar = () => {
       <Autocomplete
         value={filterData.exifModel}
         options={memoizedModelOptions}
-        loading={memoizedModelOptions.length===0}
         renderInput={(params) => <TextField {...params} label="Camera Model" />}
         onChange={(e, value) => handleChangeAction(e, value, 'exifModel')}
-        onInputChange={(e, value) => handleModelInputChange(value)}
         isOptionEqualToValue={(option, value) => value === '' || option === value}
         renderOption={(props, option) => {
           return (

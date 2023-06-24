@@ -98,15 +98,15 @@ class API {
         return this.Request('get', `/api/features/tag`);
     };
 
-    public getExifMake = async (inputField: string): Promise<ExifMakeData> => 
+    public getExifMake = async (): Promise<ExifMakeData> => 
     {
-      return this.Request('get', `/api/features/exif/make?search=${inputField}`);
+      return this.Request('get', `/api/features/exif/make`);
       
     };
 
-    public getExifModel = async (inputField: string): Promise<ExifModelData> => 
+    public getExifModel = async (): Promise<ExifModelData> => 
     {
-      return this.Request('get', `/api/features/exif/model?search=${inputField}`);   
+      return this.Request('get', `/api/features/exif/model`);   
     };
 
   
