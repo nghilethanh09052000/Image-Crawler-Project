@@ -82,7 +82,7 @@ class API {
   
         return this.Request(
           'get', 
-          `${this.baseURL}/api/images?title=${title}&tag=${tag}&page=${page}&exifMake=${exifMake}&exifMode=${exifModel}&orderBy=${orderBy}&startDate=${startDate}&endDate=${endDate}`
+          `${this.baseURL}/api/images?title=${title}&tag=${tag}&exifMake=${exifMake}&exifMode=${exifModel}&orderBy=${orderBy}&startDate=${startDate}&endDate=${endDate}&page=${page}`
         );
     };
 
