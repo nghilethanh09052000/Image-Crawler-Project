@@ -3,21 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const GET = async (request: NextRequest) => {
   try {
-    const search  = request.nextUrl?.searchParams.get('search') || "";
 
     const db = await connectMongoDb();
     const metadataCollection = db.collection("Metadata");
 
-    // Create index on exif.make field if it doesn't exist
-    const indexOptions = { background: true };
-    await metadataCollection.createIndex({ "exif.make": 1 }, indexOptions);
 
     const aggregationPipeline = [
-      {
-        $match: {
-          "exif.make": { $regex: search, $options: "i" },
-        },
-      },
       {
         $group: {
           _id: "$exif.make",
