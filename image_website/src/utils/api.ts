@@ -7,7 +7,9 @@ import {
     ImageThumbsResponse,
     ImageDetailsResponse,
     ImageMetaDataResponse,
-    ImageTag
+    ImageTag,
+    ExifMakeData,
+    ExifModelData
 } from "@/types";
 
 
@@ -96,13 +98,13 @@ class API {
         return this.Request('get', `/api/features/tag`);
     };
 
-    public getExifMake = async (inputField: string): Promise<string[]> => 
+    public getExifMake = async (inputField: string): Promise<ExifMakeData> => 
     {
       return this.Request('get', `/api/features/exif/make?search=${inputField}`);
       
     };
 
-    public getExifModel = async (inputField: string): Promise<string[]> => 
+    public getExifModel = async (inputField: string): Promise<ExifModelData> => 
     {
       return this.Request('get', `/api/features/exif/model?search=${inputField}`);   
     };

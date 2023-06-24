@@ -1,6 +1,7 @@
 import ImageCardWrapper from '@/components/ImageCard/ImageCard'
 import PaginationWrapper from '@/components/PaginationWrapper/PaginationWrapper'
 import FilterBar from '@/components/FilterBar/FilterBar';
+
 import { FilterProps } from "@/types";
 import _ from 'lodash'
 import api from '@/utils/api';
@@ -54,6 +55,7 @@ export default async function Home({searchParams}: HomeProps) {
       <FilterBar
         
       />
+
 
 
       <ImageCardWrapper  

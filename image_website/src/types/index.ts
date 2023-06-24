@@ -89,6 +89,13 @@ export interface ImageTag {
   tag: string[]
 }
 
+export interface ExifMakeData {
+  makeGroups: string[]
+}
+
+export interface ExifModelData {
+  modelGroups: string[]
+}
 
 export interface ApiResponse<T> {
   code: number;
