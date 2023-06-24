@@ -1,10 +1,8 @@
-
+import { FilterProps } from "@/types";
 
 export const capitalizeFirstLetter = (str: string): string => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
-
-
 
 export const updateSearchParams = (key: string, value: string) => {
     
@@ -16,4 +14,32 @@ export const updateSearchParams = (key: string, value: string) => {
 
   return newPathname;
 }
+
+export const handleMultipleSearchParams = (filters: FilterProps) => {
+  const searchParams = new URLSearchParams(window.location.search);
+
+  if (filters.tag) {
+    searchParams.set('tag', filters.tag);
+  }
+  if (filters.orderBy) {
+    searchParams.set('orderBy', filters.orderBy);
+  }
+  if (filters.exifMake) {
+    searchParams.set('exifMake', filters.exifMake);
+  }
+  if (filters.exifModel) {
+    searchParams.set('exifModel', filters.exifModel);
+  }
+  if (filters.startDate) {
+    searchParams.set('startDate', filters.startDate);
+  }
+  if (filters.endDate) {
+    searchParams.set('endDate', filters.endDate);
+  }
+
+  const newPathname = `${window.location.pathname}?${searchParams.toString()}`;
+
+  return newPathname;
+};
+
 
