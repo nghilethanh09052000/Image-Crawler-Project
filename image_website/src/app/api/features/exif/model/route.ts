@@ -27,8 +27,11 @@ export const GET = async (request: NextRequest) => {
         $project: {
           model: "$_id",
           _id: 0,
-        },
+        }
       },
+      {
+        $limit: 100, 
+      }
     ];
 
     const groupedModel: {model:string}[] = await metadataCollection.aggregate(aggregationPipeline).toArray();

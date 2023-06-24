@@ -296,23 +296,24 @@ const FilterBar = () => {
           <div className="grid grid-rows-1">
             {renderStartEndDate()}
           </div>
+          
+          <div className="grid grid-rows-1">
+            <div className="grid grid-cols-2 gap-6">
 
-          <div className="grid grid-cols-2 gap-6">
+              <button 
+                className="rounded-none border border-indigo-500 text-white bg-black"
+                >
+                  Apply
+                </button>
 
-            <button 
-              className="rounded-none border border-indigo-500 text-white bg-black"
+              <button 
+                className="rounded-none border border-indigo-500 text-black bg-white"
               >
-                Apply
+                Clear Filter
               </button>
 
-            <button 
-              className="rounded-none border border-indigo-500 text-black bg-white"
-            >
-              Clear Filter
-            </button>
-
+            </div>
           </div>
-         
         </div>
       )}
     </>
