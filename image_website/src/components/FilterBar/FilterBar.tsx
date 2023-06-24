@@ -6,8 +6,10 @@ import { Disclosure } from "@headlessui/react";
 import { ChevronUpIcon } from "@heroicons/react/20/solid";
 import { AppContext,setLoading } from "@/context/Context";
 import api from "@/utils/api";
+import dayjs, { Dayjs } from "dayjs";
 import { debounce } from "lodash";
-import { updateSearchParams } from "@/utils/utils";
+import _ from 'lodash';
+import { handleMultipleSearchParams } from "@/utils/utils";
 import { Autocomplete, TextField } from "@mui/material";
 
 
@@ -27,12 +29,12 @@ enum SortByOptions {
 }
 
 interface FilterData {
-  tagData: string;
-  sortByData: SortByOptions | '';
-  makeData: string;
-  modelData: string;
-  startDateData: string;
-  endDateData: string;
+  tag: string;
+  orderBy: SortByOptions | '';
+  exifMake: string;
+  exifModel: string;
+  startDate: string;
+  endDate: string;
 }
 
 const sortByList: (SortByOptions | '')[] = [
@@ -43,13 +45,14 @@ const sortByList: (SortByOptions | '')[] = [
 ];
 
 const data: FilterData = {
-  tagData: '',
-  sortByData: '',
-  makeData: '',
-  modelData: '',
-  startDateData: '',
-  endDateData: '',
+  tag: '',
+  orderBy: '',
+  exifMake: '',
+  exifModel: '',
+  startDate: '',
+  endDate: '',
 };
+
 
 
 
@@ -66,10 +69,9 @@ const FilterBar = () => {
   const [modelOptions, setModelOption] = useState<string[]>([])
 
    // Memoized options arrays for Autocomplete components
-   const memoizedTagOptions = useMemo(() => tagOptions, [tagOptions]);
-   const memoizedMakeOptions = useMemo(() => makeOptions, [makeOptions]);
-   const memoizedModelOptions = useMemo(() => modelOptions, [modelOptions]);
-
+  const memoizedTagOptions = useMemo(() => tagOptions, [tagOptions]);
+  const memoizedMakeOptions = useMemo(() => makeOptions, [makeOptions]);
+  const memoizedModelOptions = useMemo(() => modelOptions, [modelOptions]);
 
   // For each data variables:
   const [filterData, setFilterData] = useState(data)
@@ -96,22 +98,16 @@ const FilterBar = () => {
   }, []);
 
 
-  const handleSumitFilters = useCallback(
-    (e: React.SyntheticEvent, value: string | null) => {
-      if (!value) return;
-      setLoading(dispatch, true);
-      const newPathname = updateSearchParams('tag', `${value}`);
-      router.push(newPathname);
-    },
-    [dispatch, router]
-  );
-
   const handleOpenFilter = () => {
     setOpenFilter(!openFilter);
   };
 
   const handleChangeAction = useCallback(
-    (e: React.SyntheticEvent, value: string | null, name: string) => {
+    (
+      e: React.SyntheticEvent | null, 
+      value: string | null | Dayjs, 
+      name: string
+    ) => {
       if (!value) return;
       setFilterData((prevData) => ({
         ...prevData,
@@ -164,10 +160,10 @@ const FilterBar = () => {
   const renderFilterTag = useMemo(() => {
     return (
       <Autocomplete
-        value={filterData.tagData}
+        value={filterData.tag}
         options={memoizedTagOptions}
         renderInput={(params) => <TextField {...params} label="Find By Tags" />}
-        onChange={(e, value) => handleChangeAction(e, value, 'tagData')}
+        onChange={(e, value) => handleChangeAction(e, value, 'tag')}
         isOptionEqualToValue={(option, value) => value === '' || option === value}
         renderOption={(props, option) => {
           return (
@@ -178,16 +174,16 @@ const FilterBar = () => {
         }}
       />
     );
-  }, [filterData.tagData, memoizedTagOptions]);
+  }, [filterData.tag, memoizedTagOptions]);
 
   const renderSortBy = useMemo(() => {
     return (
       <Autocomplete
-        value={filterData.sortByData}
+        value={filterData.orderBy}
         options={sortByList}
         renderInput={(params) => <TextField {...params} label="Sort By" />}
         isOptionEqualToValue={(option, value) => value === '' || option === value}
-        onChange={(e, value) => handleChangeAction(e, value, 'sortByData')}
+        onChange={(e, value) => handleChangeAction(e, value, 'orderBy')}
         renderOption={(props, option) => {
           return (
             <li {...props} key={option}>
@@ -197,15 +193,16 @@ const FilterBar = () => {
         }}
       />
     );
-  }, [filterData.sortByData]);
+  }, [filterData.orderBy]);
   
   const renderExifMake = useCallback(() => {
     return (
       <Autocomplete
-        value={filterData.makeData}
+        value={filterData.exifMake}
         options={memoizedMakeOptions}
+        loading={memoizedMakeOptions.length == 0}
         renderInput={(params) => <TextField {...params} label="Camera Make" />}
-        onChange={(e, value) => handleChangeAction(e, value, 'makeData')}
+        onChange={(e, value) => handleChangeAction(e, value, 'exifMake')}
         onInputChange={(e, value) => handleMakeInputChange(value)}
         isOptionEqualToValue={(option, value) => value === '' || option === value}
         renderOption={(props, option) => {
@@ -217,15 +214,16 @@ const FilterBar = () => {
         }}
       />
     );
-  }, [filterData.makeData, memoizedMakeOptions]);
+  }, [filterData.exifMake, memoizedMakeOptions]);
   
   const renderExifModel = useCallback(() => {
     return (
       <Autocomplete
-        value={filterData.modelData}
+        value={filterData.exifModel}
         options={memoizedModelOptions}
+        loading={memoizedModelOptions.length===0}
         renderInput={(params) => <TextField {...params} label="Camera Model" />}
-        onChange={(e, value) => handleChangeAction(e, value, 'modelData')}
+        onChange={(e, value) => handleChangeAction(e, value, 'exifModel')}
         onInputChange={(e, value) => handleModelInputChange(value)}
         isOptionEqualToValue={(option, value) => value === '' || option === value}
         renderOption={(props, option) => {
@@ -237,7 +235,7 @@ const FilterBar = () => {
         }}
       />
     );
-  }, [filterData.modelData, memoizedModelOptions]);
+  }, [filterData.exifModel, memoizedModelOptions]);
 
   const renderStartEndDate = () => {
     return (
@@ -245,19 +243,70 @@ const FilterBar = () => {
         dateAdapter={AdapterDayjs}
       >
         <div className="flex justify-center items-center">
-          <DatePicker 
+          <p className="mx-3 truncate">Uploaded Date Range: </p>
+          <DatePicker
+            value={dayjs(filterData.startDate)}
+            onChange={(value) => handleChangeAction(null, value, 'startDate')} 
             label="Start Date" 
+            openTo="month"
+            views={['year', 'month', 'day']}
+            format="MM-DD-YYYY"
           />
           <p className="mx-3">to</p>
-          <DatePicker 
+          <DatePicker
+            value={dayjs(filterData.endDate)}
+            onChange={(value) => handleChangeAction(null, value, 'endDate')} 
             label="End Date" 
+            disabled={!dayjs(filterData.startDate)}
+            views={['year', 'month', 'day']}
+            format="MM-DD-YYYY"
           />
         </div>
     </LocalizationProvider>
     )
   };
+
+  const handleClearFilter = () => {
+    setFilterData(data)
+  }
+
+  const handleValidateSubmit = (data: FilterData) => {
+    let formattedStartDate: string = '';
+    let formattedEndDate: string = '';
   
-  console.log('Nghi', filterData)
+    const { startDate, endDate } = data;
+  
+    if (_.isObject(startDate)) {
+      const startDateData = new Date(startDate);
+      formattedStartDate = startDateData.toISOString().substring(0, 10);
+    }
+  
+    if (_.isObject(endDate)) {
+      const endDateDate = new Date(endDate);
+      formattedEndDate = endDateDate.toISOString().substring(0, 10);
+    }
+  
+    return {
+      ...data,
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
+    };
+  };
+  
+
+  const handleSumitFilters = () => {
+
+      if (!filterData) return;
+
+      const data = handleValidateSubmit(filterData)
+
+      setLoading(dispatch, true);
+
+      const newPathname = handleMultipleSearchParams(data);
+
+      router.push(newPathname);
+  }
+  
 
   return (
     <>
@@ -267,7 +316,7 @@ const FilterBar = () => {
             {({ open }) => (
               <>
                 <Disclosure.Button
-                  className="flex justify-end rounded-lg bg-indigo-700 px-4 py-2 text-left text-sm font-medium text-white hover:bg-yellow-700 focus:outline-none focus-visible:ring focus-visible:ring-purple-500 focus-visible:ring-opacity-75"
+                  className="flex justify-end rounded-none bg-indigo-700 px-4 py-2 text-left text-sm font-medium text-white hover:bg-yellow-700 focus:outline-none focus-visible:ring focus-visible:ring-purple-500 focus-visible:ring-opacity-75"
                   onClick={handleOpenFilter}
                 >
                   <span>Show More Filter</span>
@@ -301,16 +350,18 @@ const FilterBar = () => {
           </div>
 
           <div className="grid grid-rows-1">
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid lg:grid-cols-2 gap-6">
 
               <button 
-                className="rounded-none border border-indigo-500 text-white bg-black"
+                className="rounded-none border border-indigo-500 text-white bg-black lg:w-auto"
+                onClick={handleSumitFilters}
                 >
                   Apply
                 </button>
 
               <button 
-                className="rounded-none border border-indigo-500 text-black bg-white"
+                className="rounded-none border border-indigo-500 text-black bg-white lg:w-auto"
+                onClick={handleClearFilter}
               >
                 Clear Filter
               </button>

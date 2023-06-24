@@ -30,7 +30,7 @@ export const GET = async (request: NextRequest) => {
         }
       },
       {
-        $limit: 100, 
+        $limit: 30, 
       }
     ];
 
