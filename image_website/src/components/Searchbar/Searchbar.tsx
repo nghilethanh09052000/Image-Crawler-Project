@@ -4,7 +4,7 @@
 import { useState, useEffect, ChangeEvent, useContext } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AppContext, setLoading } from '@/context/Context';
-
+import { updateSearchParams } from '@/utils/utils';
 
 const SearchBar = () => {
 
@@ -17,14 +17,17 @@ const SearchBar = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    setSearchTerm('')
     setLoading(dispatch, false);
   }, [title]);
 
 
 
   const handleSumit = async () => {
-    setLoading(dispatch,true)
-    router.push(`/?title=${searchTerm}`)
+
+    setLoading(dispatch, true)
+    const newPathname = updateSearchParams("title", `${searchTerm}`);
+    router.push(newPathname)
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
