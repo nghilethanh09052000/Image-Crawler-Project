@@ -96,12 +96,15 @@ const FilterBar = () => {
   }, []);
 
 
-  const handleSumitFilters = (e: React.SyntheticEvent, value: string | null) => {
-    if(!value) return
-    setLoading(dispatch,true)
-    const newPathname = updateSearchParams("tag", `${value}`);
-    router.push(newPathname)
-  }
+  const handleSumitFilters = useCallback(
+    (e: React.SyntheticEvent, value: string | null) => {
+      if (!value) return;
+      setLoading(dispatch, true);
+      const newPathname = updateSearchParams('tag', `${value}`);
+      router.push(newPathname);
+    },
+    [dispatch, router]
+  );
 
   const handleOpenFilter = () => {
     setOpenFilter(!openFilter);
@@ -296,7 +299,7 @@ const FilterBar = () => {
           <div className="grid grid-rows-1">
             {renderStartEndDate()}
           </div>
-          
+
           <div className="grid grid-rows-1">
             <div className="grid grid-cols-2 gap-6">
 
