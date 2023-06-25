@@ -95,18 +95,18 @@ class API {
 
     public getImageTag = async (): Promise<ImageTag> => 
     {
-        return this.Request('get', `/api/features/tag`);
+        return this.Request('get', `${this.baseURL}/api/features/tag`);
     };
 
     public getExifMake = async (): Promise<ExifMakeData> => 
     {
-      return this.Request('get', `/api/features/exif/make`);
+      return this.Request('get', `${this.baseURL}/api/features/exif/make`);
       
     };
 
     public getExifModel = async (): Promise<ExifModelData> => 
     {
-      return this.Request('get', `/api/features/exif/model`);   
+      return this.Request('get', `${this.baseURL}/api/features/exif/model`);   
     };
 
   

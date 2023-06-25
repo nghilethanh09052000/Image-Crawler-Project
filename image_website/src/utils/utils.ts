@@ -16,7 +16,12 @@ export const updateSearchParams = (key: string, value: string) => {
 }
 
 export const handleMultipleSearchParams = (filters: FilterProps) => {
+
+  const isFilterDataEmpty = Object.values(filters).every((value) => value === "");
+  if(isFilterDataEmpty) return '/'
+
   const searchParams = new URLSearchParams(window.location.search);
+
 
   if (filters.tag) {
     searchParams.set('tag', filters.tag);
@@ -38,7 +43,6 @@ export const handleMultipleSearchParams = (filters: FilterProps) => {
   }
 
   const newPathname = `${window.location.pathname}?${searchParams.toString()}`;
-
   return newPathname;
 };
 

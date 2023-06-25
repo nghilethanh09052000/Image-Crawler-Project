@@ -44,6 +44,14 @@ export default async function Home({searchParams}: HomeProps) {
     total_pages
   } = data
 
+  const getTags = await api.getImageTag();
+  const getExifMake = await api.getExifMake()
+  const getExifModel = await api.getExifModel()
+
+  const { tagsList } = getTags
+  const { makeGroups } = getExifMake
+  const { modelGroups } = getExifModel
+
 
   
 
@@ -53,7 +61,15 @@ export default async function Home({searchParams}: HomeProps) {
     <div className="container mx-auto px-5 py-2 lg:px-32 lg:pt-12">
 
       <FilterBar
-        
+        tagsList={tagsList}
+        makeGroups={makeGroups}
+        modelGroups={modelGroups}
+        tag={tag || ''}
+        orderBy={orderBy || ''}
+        startDate={startDate || ''}
+        endDate={endDate || ''}
+        exifMake={exifMake || ''}
+        exifModel={exifModel || ''}
       />
 
 
@@ -61,8 +77,6 @@ export default async function Home({searchParams}: HomeProps) {
       <ImageCardWrapper  
           thumbnails={thumbnails || []}
         />
-
-
         
       <PaginationWrapper
         page={+page || 1}
