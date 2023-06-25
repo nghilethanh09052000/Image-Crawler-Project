@@ -25,7 +25,7 @@ export const GET = async (request: NextRequest) => {
     const rootClassGroups = groupedRootClass.map((group)=>group.root_class)
 
     const jsonResponse = {
-      tag: rootClassGroups,
+      tagsList: rootClassGroups,
     };
 
     return NextResponse.json(jsonResponse, { status: 200 });

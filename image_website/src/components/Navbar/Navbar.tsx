@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import Intro from "@/app/(home)/components/Intro/Intro";
+import Intro from "@/components/Intro/Intro";
 
 const NavBar = () => (
     <>

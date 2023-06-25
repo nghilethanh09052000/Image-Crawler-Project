@@ -1,12 +1,19 @@
 
 
+enum SortByOptions {
+  Views = 'Views',
+  Likes = 'Likes',
+  Downloads = 'Downloads',
+  Comments = 'Comments',
+}
+
 export interface FilterProps {
   page?: number;
   title?: string;
   tag?: string;
   exifMake?: string;
   exifModel?: string;
-  orderBy?: string;
+  orderBy?: SortByOptions | '';
   startDate?: string;
   endDate?: string;
 }
@@ -86,7 +93,7 @@ export interface ImageMetaDataResponse {
 }
 
 export interface ImageTag {
-  tag: string[]
+  tagsList: string[]
 }
 
 export interface ExifMakeData {
