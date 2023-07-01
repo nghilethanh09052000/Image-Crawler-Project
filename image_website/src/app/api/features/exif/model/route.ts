@@ -7,6 +7,9 @@ export const GET = async (request: NextRequest) => {
     const db = await connectMongoDb();
     const metadataCollection = db.collection("Metadata");
 
+    
+    // Create index for exif.model field
+    await metadataCollection.createIndex({ "exif.model": 1 }, { background: true });
 
 
     const aggregationPipeline = [

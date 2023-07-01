@@ -6,6 +6,17 @@ export const GET = async (request: NextRequest) => {
     const db = await connectMongoDb();
     const metadataCollection = db.collection("Metadata");
 
+     // Check if index already exists
+     const indexExists = await metadataCollection.indexExists("root_class");
+
+     if (!indexExists) {
+       // Create index for root_class field
+       await metadataCollection.createIndex({ root_class: 1 }), { background: true };
+     }
+
+
+
+
     const aggregationPipeline = [
       {
         $group: {
