@@ -46,8 +46,7 @@ class PixabaySpider(scrapy.Spider):
 
         selector   = scrapy.Selector(text=html)
         photo_urls = selector.xpath('//div[@class="cell--B7yKd"]/div/a/@href').getall()
-
-       
+   
 
         next_page = selector.xpath('//div[contains(@class,"nextPage--")]/a/span')
 
@@ -100,7 +99,6 @@ class PixabaySpider(scrapy.Spider):
                 }
             )
     
-
         if next_page:
 
             self.i+=1
